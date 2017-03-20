@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Generated with glade 3.20.0 -->
+<interface domain="gnome-paint">
+    <requires lib="gtk+" version="3.20"/>
+    <template class="GPDrawingArea" parent="GtkDrawingArea">
+        <property name="visible">True</property>
+    </template>
+</interface>

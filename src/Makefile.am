@@ -1,11 +1,13 @@
 bin_PROGRAMS = gnome-paint
 
-gnome_paint_SOURCES =    \
-	gp-application.c \
-	gp-drawingarea.c \
-	gp-linetool.c    \
-	gp-main.c        \
-	gp-window.c      \
+gnome_paint_SOURCES =         \
+	gp-application.c      \
+	gp-colorbutton.c      \
+	gp-colorselectorbox.c \
+	gp-drawingarea.c      \
+	gp-linetool.c         \
+	gp-main.c             \
+	gp-window.c           \
 	gp-tool.c
 gnome_paint_CFLAGS = $(GNOME_PAINT_CFLAGS) -DLOCALEDIR=\""$(localedir)"\"
 

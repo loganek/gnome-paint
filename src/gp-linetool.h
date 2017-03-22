@@ -27,4 +27,4 @@ GPTool* gp_line_tool_create ();
 
 G_END_DECLS
 
-#endif /* GP_DRAWING_AREA_H_ */
+#endif /* GP_RECTANGLE_TOOL_H_ */

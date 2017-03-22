@@ -1,4 +1,4 @@
-/* gp-tool.h
+/* gp-toolbox.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,26 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_TOOL_H_
-#define GP_TOOL_H_
+#ifndef GP_TOOL_BOX_H_
+#define GP_TOOL_BOX_H_
+
+#include "gp-tool.h"
 
 #include <gtk/gtk.h>
 
-typedef struct _GPTool GPTool;
-
 G_BEGIN_DECLS
 
-struct _GPTool {
-    void (*draw) (GPTool  *tool,
-                  GdkPoint start_point,
-                  GdkPoint current_point,
-		  cairo_t *cairo_context);
-    GtkWidget* (*create_icon) (GPTool *tool);
-};
+#define GP_TYPE_TOOL_BOX (gp_tool_box_get_type ())
+G_DECLARE_FINAL_TYPE (GPToolBox, gp_tool_box, GP, TOOL_BOX, GtkBox)
 
-GtkWidget* gp_tool_create_icon (GPTool *tool);
+GtkWidget * gp_tool_box_new (void);
+
+GPTool *gp_tool_box_get_active_tool (GPToolBox *tool_box);
 
 G_END_DECLS
 
-#endif /* GP_TOOL_H_ */
-
+#endif /* GP_TOOL_BOX_H_ */

@@ -19,6 +19,7 @@
 #include "gp-window.h"
 
 #include "gp-drawingarea.h"
+#include "gp-toolbox.h"
 #include "gp-linetool.h" // TODO remove
 
 #include <glib/gi18n.h>
@@ -43,6 +44,7 @@ typedef struct
 {
     GtkFrame* main_frame;
     GPDrawingArea* drawing_area;
+    GPToolBox* tool_box;
     GtkEventBox *resizer;
     GPResizeMode resize_mode;
 } GPWindowPrivate;
@@ -66,12 +68,20 @@ calculate_resize_mode (GtkWidget *widget, gint pos_x, gint pos_y)
     return resize_mode;
 }
 
+static void
+on_tool_changed (GtkWidget *widget, gpointer user_data)
+{
+    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
+
+    gp_drawing_area_set_tool (priv->drawing_area, gp_tool_box_get_active_tool (priv->tool_box));
+}
+
 static gboolean
 on_resizer_button_press_event (GtkWidget      *widget,
                                GdkEventButton *event,
-                               gpointer        data)
+                               gpointer        user_data)
 {
-    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (data));
+    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
 
     priv->resize_mode = calculate_resize_mode (GTK_WIDGET (priv->drawing_area), event->x, event->y);
 
@@ -81,9 +91,9 @@ on_resizer_button_press_event (GtkWidget      *widget,
 static gboolean
 on_resizer_button_release_event (GtkWidget      *widget,
                                  GdkEventButton *event,
-                                 gpointer        data)
+                                 gpointer        user_data)
 {
-    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (data));
+    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
 
     if (priv->resize_mode)
     {
@@ -144,6 +154,8 @@ gp_window_class_init (GPWindowClass *klass)
                                                   drawing_area);
     gtk_widget_class_bind_template_child_private (widget_class, GPWindow,
                                                   resizer);
+    gtk_widget_class_bind_template_child_private (widget_class, GPWindow,
+                                                  tool_box);
 	/*
     gtk_widget_class_bind_template_child_private (widget_class, GlWindow,
                                                   event);
@@ -166,14 +178,16 @@ gp_window_init (GPWindow *window)
 
     priv = gp_window_get_instance_private (window);
 
-    gp_drawing_area_set_tool (priv->drawing_area, gp_line_tool_create ()); // TODO temp
-
     gtk_widget_set_size_request (GTK_WIDGET (priv->drawing_area), 100, 100); // TODO
 
     gtk_widget_add_events (GTK_WIDGET (priv->resizer),
 			   GDK_BUTTON_PRESS_MASK
 			   | GDK_BUTTON_RELEASE_MASK
 			   | GDK_POINTER_MOTION_MASK);
+
+    g_signal_connect (priv->tool_box, "tool-changed", G_CALLBACK (on_tool_changed), window);
+
+    gp_drawing_area_set_tool (priv->drawing_area, gp_tool_box_get_active_tool (priv->tool_box));
 }
 
 GtkWidget *

@@ -18,3 +18,8 @@
 
 #include "gp-tool.h"
 
+GtkWidget*
+gp_tool_create_icon (GPTool *tool)
+{
+    return tool->create_icon (tool);
+}

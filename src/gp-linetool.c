@@ -37,12 +37,20 @@ gp_line_tool_draw (GPTool *tool,
     cairo_stroke (cairo_context);
 }
 
-GPTool* gp_line_tool_create ()
+static GtkWidget*
+gp_line_tool_create_icon (GPTool *tool)
+{
+    return gtk_image_new_from_resource ("/org/gnome/Paint/toolicons/line.png");
+}
+
+GPTool*
+gp_line_tool_create ()
 {
     GPLineTool *line_tool = g_new (GPLineTool, 1);
 
     line_tool->parent_instance.draw = gp_line_tool_draw;
+    line_tool->parent_instance.create_icon = gp_line_tool_create_icon;
 
-    return line_tool;
+    return (GPTool*) line_tool;
 }
 

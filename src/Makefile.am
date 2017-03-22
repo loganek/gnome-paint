@@ -7,8 +7,11 @@ gnome_paint_SOURCES =         \
 	gp-drawingarea.c      \
 	gp-linetool.c         \
 	gp-main.c             \
-	gp-window.c           \
-	gp-tool.c
+	gp-rectangletool.c    \
+	gp-tool.c             \
+	gp-toolbox.c          \
+	gp-window.c
+
 gnome_paint_CFLAGS = $(GNOME_PAINT_CFLAGS) -DLOCALEDIR=\""$(localedir)"\"
 
 gnome_paint_LDADD = $(GNOME_PAINT_LIBS)

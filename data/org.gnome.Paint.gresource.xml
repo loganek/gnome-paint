@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <gresources>
   <gresource prefix='/org/gnome/Paint'>
-    <file preprocess='xml-stripblanks'>gp-window.ui</file>
-    <file preprocess='xml-stripblanks'>gp-drawingarea.ui</file>
     <file preprocess='xml-stripblanks'>gp-colorselectorbox.ui</file>
+    <file preprocess='xml-stripblanks'>gp-drawingarea.ui</file>
+    <file preprocess='xml-stripblanks'>gp-toolbox.ui</file>
+    <file preprocess='xml-stripblanks'>gp-window.ui</file>
   </gresource>
   <gresource prefix='/org/gnome/Paint/gtk'>
     <file preprocess='xml-stripblanks'>menus.ui</file>
+  </gresource>
+  <gresource prefix='/org/gnome/Paint'> <!-- toolicons -->
+    <file>toolicons/line.png</file>
+    <file>toolicons/rectangle.png</file>
   </gresource>
 </gresources>

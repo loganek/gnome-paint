@@ -222,6 +222,8 @@ static void
 gp_drawing_area_init (GPDrawingArea *drawing_area)
 {
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
+    gtk_widget_init_template (GTK_WIDGET (drawing_area));
+
     priv->tool = NULL;
     priv->is_drawing = FALSE;
 
@@ -230,19 +232,6 @@ gp_drawing_area_init (GPDrawingArea *drawing_area)
 			   | GDK_BUTTON_RELEASE_MASK
 			   | GDK_POINTER_MOTION_MASK
 			   | GDK_ENTER_NOTIFY_MASK);
-
-    g_signal_connect (drawing_area, "button-press-event",
-		      G_CALLBACK(on_gp_drawing_area_button_press_event), NULL);
-    g_signal_connect (drawing_area, "button-release-event",
-		      G_CALLBACK(on_gp_drawing_area_button_release_event), NULL);
-    g_signal_connect (drawing_area, "motion-notify-event",
-                      G_CALLBACK (on_gp_drawing_area_motion_notify_event), NULL);
-    g_signal_connect (drawing_area, "enter-notify-event",
-                      G_CALLBACK (on_gp_drawing_area_enter_notify_event), NULL);
-    g_signal_connect (drawing_area,"configure-event",
-                      G_CALLBACK (on_gp_drawing_area_configure_event), NULL);
-    g_signal_connect (drawing_area, "draw",
-                      G_CALLBACK (on_gp_drawing_area_draw), NULL);
 }
 
 static void
@@ -252,6 +241,18 @@ gp_drawing_area_class_init (GPDrawingAreaClass *klass)
 
     gtk_widget_class_set_template_from_resource (widget_class,
                                                  "/org/gnome/Paint/gp-drawingarea.ui");
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_gp_drawing_area_button_press_event);
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_gp_drawing_area_button_release_event);
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_gp_drawing_area_motion_notify_event);
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_gp_drawing_area_enter_notify_event);
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_gp_drawing_area_configure_event);
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_gp_drawing_area_draw);
 }
 
 void

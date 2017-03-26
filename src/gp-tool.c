@@ -18,8 +18,84 @@
 
 #include "gp-tool.h"
 
+typedef struct
+{
+    GdkPoint start_point;
+    GdkPoint current_point;
+    gboolean grabbed;
+} GPToolPrivate;
+
+#define GP_TOOL_GET_PRIVATE(tool) ((GPToolPrivate *)gp_tool_get_instance_private (tool))
+
+G_DEFINE_TYPE_WITH_PRIVATE (GPTool, gp_tool, G_TYPE_OBJECT)
+
+static GtkWidget *
+gp_tool_default_create_icon (GPTool *self)
+{
+    return NULL; // TODO
+}
+
+static GtkWidget *
+gp_tool_default_draw (GPTool *self, cairo_t *cairo_context)
+{
+}
+
+static void
+gp_tool_class_init (GPToolClass *klass)
+{
+    klass->create_icon = gp_tool_default_create_icon;
+    klass->draw = gp_tool_default_draw;
+}
+
+static void
+gp_tool_init (GPTool *self)
+{
+    GP_TOOL_GET_PRIVATE (self)->grabbed = FALSE;
+}
+
 GtkWidget*
 gp_tool_create_icon (GPTool *tool)
 {
-    return tool->create_icon (tool);
+    GP_TOOL_GET_CLASS (tool)->create_icon (tool);
+}
+
+void
+gp_tool_draw (GPTool *tool, cairo_t *cairo_context)
+{
+    GP_TOOL_GET_CLASS (tool)->draw (tool, cairo_context);
+}
+
+GdkPoint
+gp_tool_get_start_point (GPTool *tool)
+{
+    return GP_TOOL_GET_PRIVATE (tool)->start_point;
+}
+
+void
+gp_tool_set_start_point (GPTool *tool, const GdkPoint *point)
+{
+    GP_TOOL_GET_PRIVATE (tool)->start_point = *point;
+}
+
+GdkPoint gp_tool_get_current_point (GPTool *tool)
+{
+    return GP_TOOL_GET_PRIVATE (tool)->current_point;
+}
+
+void
+gp_tool_set_current_point (GPTool *tool, const GdkPoint *point)
+{
+    GP_TOOL_GET_PRIVATE (tool)->current_point = *point;
+}
+
+gboolean
+gp_tool_get_grabbed (GPTool *tool)
+{
+    return GP_TOOL_GET_PRIVATE (tool)->grabbed;
+}
+
+void
+gp_tool_set_grabbed (GPTool *tool, gboolean grabbed)
+{
+    GP_TOOL_GET_PRIVATE (tool)->grabbed = grabbed;
 }

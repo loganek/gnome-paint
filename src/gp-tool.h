@@ -21,19 +21,32 @@
 
 #include <gtk/gtk.h>
 
-typedef struct _GPTool GPTool;
-
 G_BEGIN_DECLS
 
-struct _GPTool {
+#define GP_TYPE_TOOL (gp_tool_get_type ())
+G_DECLARE_DERIVABLE_TYPE (GPTool, gp_tool, GP, TOOL, GObject)
+
+struct _GPToolClass
+{
+    GObjectClass parent_class;
+
     void (*draw) (GPTool  *tool,
-                  GdkPoint start_point,
-                  GdkPoint current_point,
-		  cairo_t *cairo_context);
+                  cairo_t *cairo_context);
     GtkWidget* (*create_icon) (GPTool *tool);
 };
 
 GtkWidget* gp_tool_create_icon (GPTool *tool);
+
+void gp_tool_draw (GPTool *tool, cairo_t *cairo_context);
+
+GdkPoint gp_tool_get_start_point (GPTool *tool);
+void gp_tool_set_start_point (GPTool *tool, const GdkPoint *point);
+
+GdkPoint gp_tool_get_current_point (GPTool *tool);
+void gp_tool_set_current_point (GPTool *tool, const GdkPoint *point);
+
+gboolean gp_tool_get_grabbed (GPTool *tool);
+void gp_tool_set_grabbed (GPTool *tool, gboolean grabbed);
 
 G_END_DECLS
 

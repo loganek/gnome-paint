@@ -23,6 +23,9 @@
 
 G_BEGIN_DECLS
 
+#define GP_TYPE_RECTANGLE_TOOL (gp_rectangle_tool_get_type ())
+G_DECLARE_FINAL_TYPE (GPRectangleTool, gp_rectangle_tool, GP, RECTANGLE_TOOL, GPTool)
+
 GPTool* gp_rectangle_tool_create ();
 
 G_END_DECLS

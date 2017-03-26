@@ -18,21 +18,26 @@
 
 #include "gp-rectangletool.h"
 
-typedef struct {
+struct _GPRectangleTool
+{
     GPTool parent_instance;
-} GPRectangleTool;
+};
+
+G_DEFINE_TYPE (GPRectangleTool, gp_rectangle_tool, GP_TYPE_TOOL)
 
 static void
 gp_rectangle_tool_draw (GPTool *tool,
-                        GdkPoint start_point,
-                        GdkPoint current_point,
-		        cairo_t *cairo_context)
+                         cairo_t *cairo_context)
 {
+    GdkPoint start_point = gp_tool_get_start_point (tool);
+    GdkPoint current_point = gp_tool_get_current_point (tool);
+
     cairo_rectangle (cairo_context,
-		     start_point.x, start_point.y,
-		     current_point.x - start_point.x,
-		     current_point.y - start_point.y);
+                     start_point.x, start_point.y,
+                     current_point.x - start_point.x,
+                     current_point.y - start_point.y);
     cairo_stroke (cairo_context);
+    printf("%d %d %d %d\n", start_point.x, start_point.y, current_point.x, current_point.y);
 }
 
 static GtkWidget*
@@ -41,14 +46,22 @@ gp_rectangle_tool_create_icon (GPTool *tool)
     return gtk_image_new_from_resource ("/org/gnome/Paint/toolicons/rectangle.png");
 }
 
+static void
+gp_rectangle_tool_init (GPRectangleTool *self)
+{
+}
+
+static void
+gp_rectangle_tool_class_init (GPRectangleToolClass *klass)
+{
+    GPToolClass *tool_class = GP_TOOL_CLASS (klass);
+
+    tool_class->draw = gp_rectangle_tool_draw;
+    tool_class->create_icon = gp_rectangle_tool_create_icon;
+}
+
 GPTool*
 gp_rectangle_tool_create ()
 {
-    GPRectangleTool *rectangle_tool = g_new (GPRectangleTool, 1);
-
-    rectangle_tool->parent_instance.draw = gp_rectangle_tool_draw;
-    rectangle_tool->parent_instance.create_icon = gp_rectangle_tool_create_icon;
-
-    return (GPTool*) rectangle_tool;
+    return  GP_TOOL (g_object_new (GP_TYPE_RECTANGLE_TOOL, NULL));
 }
-

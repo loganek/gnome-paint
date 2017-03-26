@@ -30,11 +30,8 @@ struct _GPDrawingArea
 typedef struct
 {
     GPTool *tool;
-    gboolean is_drawing;
     cairo_surface_t *active_surface;
     cairo_surface_t *base_surface;
-    GdkPoint start_point;
-    GdkPoint current_point;
 } GPDrawingAreaPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPDrawingArea, gp_drawing_area, GTK_TYPE_DRAWING_AREA)
@@ -98,7 +95,7 @@ gp_drawing_area_draw (GPDrawingArea *drawing_area)
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
     cairo_t *cr;
 
-    if (priv->is_drawing == FALSE)
+    if (priv->tool == NULL || gp_tool_get_grabbed (priv->tool) == FALSE)
     {
         return;
     }
@@ -111,7 +108,7 @@ gp_drawing_area_draw (GPDrawingArea *drawing_area)
 
     cr = cairo_create (priv->active_surface);
 
-    priv->tool->draw (priv->tool, priv->start_point, priv->current_point, cr);
+    gp_tool_draw (priv->tool, cr);
 
     cairo_destroy (cr);
 
@@ -153,21 +150,19 @@ on_gp_drawing_area_button_press_event (GtkWidget      *widget,
 
     if (event->button == GDK_BUTTON_PRIMARY)
     {
-        priv->is_drawing = TRUE;
-
-        priv->current_point.x = (gint) event->x;
-        priv->current_point.y = (gint) event->y;
-        priv->start_point = priv->current_point;
-
+        GdkPoint pt = { event->x, event->y };
+        gp_tool_set_start_point (priv->tool, &pt);
+        gp_tool_set_current_point (priv->tool, &pt);
+        gp_tool_set_grabbed (priv->tool, TRUE);
         repaint_surface (priv->active_surface, priv->base_surface);
 
-	gp_drawing_area_draw (GP_DRAWING_AREA (widget));
+        gp_drawing_area_draw (GP_DRAWING_AREA (widget));
     }
-    else if (event->button == GDK_BUTTON_SECONDARY && priv->is_drawing == TRUE)
+    else if (event->button == GDK_BUTTON_SECONDARY && gp_tool_get_grabbed (priv->tool) == TRUE)
     {
         repaint_surface (priv->active_surface, priv->base_surface);
         gp_drawing_area_queue_draw (GP_DRAWING_AREA (widget));
-        priv->is_drawing = FALSE;
+        gp_tool_set_grabbed (priv->tool, FALSE);
     }
     return TRUE;
 }
@@ -179,10 +174,10 @@ on_gp_drawing_area_button_release_event (GtkWidget      *widget,
 {
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
 
-    if (event->button == GDK_BUTTON_PRIMARY && priv->is_drawing == TRUE)
+    if (event->button == GDK_BUTTON_PRIMARY && gp_tool_get_grabbed (priv->tool) == TRUE)
     {
         repaint_surface (priv->base_surface, priv->active_surface);
-        priv->is_drawing = FALSE;
+        gp_tool_set_grabbed (priv->tool, FALSE);
     }
 }
 
@@ -193,10 +188,10 @@ on_gp_drawing_area_motion_notify_event (GtkWidget      *widget,
 {
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
 
-    if (event->state & GDK_BUTTON1_MASK && priv->is_drawing == TRUE)
+    if (event->state & GDK_BUTTON1_MASK && gp_tool_get_grabbed (priv->tool) == TRUE)
     {
-        priv->current_point.x = (gint) event->x;
-        priv->current_point.y = (gint) event->y;
+        GdkPoint pt = { event->x, event->y };
+        gp_tool_set_current_point (priv->tool, &pt);
 
         repaint_surface (priv->active_surface, priv->base_surface);
 
@@ -225,7 +220,6 @@ gp_drawing_area_init (GPDrawingArea *drawing_area)
     gtk_widget_init_template (GTK_WIDGET (drawing_area));
 
     priv->tool = NULL;
-    priv->is_drawing = FALSE;
 
     gtk_widget_add_events (GTK_WIDGET (drawing_area),
 			   GDK_BUTTON_PRESS_MASK

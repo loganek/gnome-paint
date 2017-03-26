@@ -18,22 +18,26 @@
 
 #include "gp-linetool.h"
 
-typedef struct {
+struct _GPLineTool
+{
     GPTool parent_instance;
-} GPLineTool;
+};
+
+G_DEFINE_TYPE (GPLineTool, gp_line_tool, GP_TYPE_TOOL)
 
 static void
 gp_line_tool_draw (GPTool *tool,
-                  GdkPoint start_point,
-                  GdkPoint current_point,
-		  cairo_t *cairo_context)
+                   cairo_t *cairo_context)
 {
+    GdkPoint start_point = gp_tool_get_start_point (tool);
+    GdkPoint current_point = gp_tool_get_current_point (tool);
+
     cairo_move_to (cairo_context,
-		   start_point.x,
-		   start_point.y);
+                   start_point.x,
+                   start_point.y);
     cairo_line_to (cairo_context,
-		   current_point.x,
-		   current_point.y);
+                   current_point.x,
+                   current_point.y);
     cairo_stroke (cairo_context);
 }
 
@@ -43,14 +47,23 @@ gp_line_tool_create_icon (GPTool *tool)
     return gtk_image_new_from_resource ("/org/gnome/Paint/toolicons/line.png");
 }
 
+static void
+gp_line_tool_init (GPLineTool *self)
+{
+}
+
+static void
+gp_line_tool_class_init (GPLineToolClass *klass)
+{
+    GPToolClass *tool_class = GP_TOOL_CLASS (klass);
+
+    tool_class->draw = gp_line_tool_draw;
+    tool_class->create_icon = gp_line_tool_create_icon;
+}
+
 GPTool*
 gp_line_tool_create ()
 {
-    GPLineTool *line_tool = g_new (GPLineTool, 1);
-
-    line_tool->parent_instance.draw = gp_line_tool_draw;
-    line_tool->parent_instance.create_icon = gp_line_tool_create_icon;
-
-    return (GPTool*) line_tool;
+    return  GP_TOOL (g_object_new (GP_TYPE_LINE_TOOL, NULL));
 }
 

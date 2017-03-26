@@ -23,6 +23,9 @@
 
 G_BEGIN_DECLS
 
+#define GP_TYPE_LINE_TOOL (gp_line_tool_get_type ())
+G_DECLARE_FINAL_TYPE (GPLineTool, gp_line_tool, GP, LINE_TOOL, GPTool)
+
 GPTool* gp_line_tool_create ();
 
 G_END_DECLS

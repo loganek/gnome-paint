@@ -4,11 +4,6 @@
     <requires lib="gtk+" version="3.20"/>
     <template class="GPDrawingArea" parent="GtkDrawingArea">
       <property name="visible">True</property>
-      <signal name="button-press-event" handler="on_gp_drawing_area_button_press_event"/>
-      <signal name="button-release-event" handler="on_gp_drawing_area_button_release_event"/>
-      <signal name="motion-notify-event" handler="on_gp_drawing_area_motion_notify_event"/>
-      <signal name="enter-notify-event" handler="on_gp_drawing_area_enter_notify_event"/>
       <signal name="configure-event" handler="on_gp_drawing_area_configure_event"/>
-      <signal name="draw" handler="on_gp_drawing_area_draw"/>
     </template>
 </interface>

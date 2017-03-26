@@ -37,7 +37,12 @@ gp_rectangle_tool_draw (GPTool *tool,
                      current_point.x - start_point.x,
                      current_point.y - start_point.y);
     cairo_stroke (cairo_context);
-    printf("%d %d %d %d\n", start_point.x, start_point.y, current_point.x, current_point.y);
+}
+
+static void
+gp_rectangle_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context)
+{
+    gp_rectangle_tool_draw (tool, cairo_context);
 }
 
 static GtkWidget*
@@ -58,6 +63,7 @@ gp_rectangle_tool_class_init (GPRectangleToolClass *klass)
 
     tool_class->draw = gp_rectangle_tool_draw;
     tool_class->create_icon = gp_rectangle_tool_create_icon;
+    tool_class->button_release = gp_rectangle_tool_button_release;
 }
 
 GPTool*

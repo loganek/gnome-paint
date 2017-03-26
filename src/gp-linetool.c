@@ -48,6 +48,12 @@ gp_line_tool_create_icon (GPTool *tool)
 }
 
 static void
+gp_line_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context)
+{
+    gp_line_tool_draw (tool, cairo_context);
+}
+
+static void
 gp_line_tool_init (GPLineTool *self)
 {
 }
@@ -59,6 +65,7 @@ gp_line_tool_class_init (GPLineToolClass *klass)
 
     tool_class->draw = gp_line_tool_draw;
     tool_class->create_icon = gp_line_tool_create_icon;
+    tool_class->button_release = gp_line_tool_button_release;
 }
 
 GPTool*

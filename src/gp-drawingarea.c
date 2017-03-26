@@ -21,6 +21,53 @@
 #include "gp-tool.h"
 #include "gp-drawingarea.h"
 
+#include <cairo-gobject.h>
+
+enum
+{
+    SIGNAL_DRAW_OVERLAY,
+    LAST_SIGNAL
+};
+
+#define g_marshal_value_peek_boxed(v)    (v)->data[0].v_pointer
+
+void
+gegl_gtk_marshal_VOID__BOXED (GClosure     *closure,
+                                    GValue       *return_value G_GNUC_UNUSED,
+                                    guint         n_param_values,
+                                    const GValue *param_values,
+                                    gpointer      invocation_hint G_GNUC_UNUSED,
+                                    gpointer      marshal_data)
+{
+    typedef void (*GMarshalFunc_VOID__BOXED) (gpointer     data1,
+                                                    gpointer     arg_1,
+                                                    gpointer     data2);
+    GMarshalFunc_VOID__BOXED callback;
+    GCClosure *cc = (GCClosure*) closure;
+    gpointer data1, data2;
+
+    g_return_if_fail (n_param_values == 2);
+
+    if (G_CCLOSURE_SWAP_DATA (closure))
+    {
+        data1 = closure->data;
+        data2 = g_value_peek_pointer (param_values + 0);
+    }
+    else
+    {
+        data1 = g_value_peek_pointer (param_values + 0);
+        data2 = closure->data;
+    }
+    callback = (GMarshalFunc_VOID__BOXED) (marshal_data ? marshal_data : cc->callback);
+
+    callback (data1,
+              g_marshal_value_peek_boxed (param_values + 1),
+              data2);
+}
+
+
+static guint gp_drawing_area_signals[LAST_SIGNAL] = { 0 };
+
 struct _GPDrawingArea
 {
     /*< private >*/
@@ -29,7 +76,6 @@ struct _GPDrawingArea
 
 typedef struct
 {
-    GPTool *tool;
     cairo_surface_t *active_surface;
     cairo_surface_t *base_surface;
 } GPDrawingAreaPrivate;
@@ -62,9 +108,9 @@ static void
 init_surface (cairo_surface_t **surface, GtkWidget *widget)
 {
     cairo_surface_t *tmp_surface = gdk_window_create_similar_surface (gtk_widget_get_window (widget),
-                                                  CAIRO_CONTENT_COLOR,
-                                                  gtk_widget_get_allocated_width (widget),
-                                                  gtk_widget_get_allocated_height (widget));
+                                                                      CAIRO_CONTENT_COLOR,
+                                                                      gtk_widget_get_allocated_width (widget),
+                                                                      gtk_widget_get_allocated_height (widget));
 
     clear_surface (tmp_surface);
 
@@ -83,10 +129,10 @@ gp_drawing_area_queue_draw (GPDrawingArea *drawing_area)
     GtkWidget *widget = GTK_WIDGET (drawing_area);
 
     gtk_widget_queue_draw_area (
-        widget,
-        0, 0,
-        gtk_widget_get_allocated_width (widget),
-        gtk_widget_get_allocated_height (widget));
+                widget,
+                0, 0,
+                gtk_widget_get_allocated_width (widget),
+                gtk_widget_get_allocated_height (widget));
 }
 
 static void
@@ -95,20 +141,9 @@ gp_drawing_area_draw (GPDrawingArea *drawing_area)
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
     cairo_t *cr;
 
-    if (priv->tool == NULL || gp_tool_get_grabbed (priv->tool) == FALSE)
-    {
-        return;
-    }
-
-    if (priv->tool == NULL)
-    {
-        g_error ("Tool expected");
-        return;
-    }
 
     cr = cairo_create (priv->active_surface);
 
-    gp_tool_draw (priv->tool, cr);
 
     cairo_destroy (cr);
 
@@ -122,8 +157,11 @@ on_gp_drawing_area_draw (GtkWidget *widget,
 {
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
 
-    cairo_set_source_surface (cr, priv->active_surface, 0, 0);
+    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
+    cairo_set_source_surface (cr, priv->base_surface, 0, 0);
     cairo_paint (cr);
+
+    g_signal_emit (widget, gp_drawing_area_signals[SIGNAL_DRAW_OVERLAY], 0, cr, NULL);
 
     return FALSE;
 }
@@ -141,91 +179,17 @@ on_gp_drawing_area_configure_event (GtkWidget         *widget,
     return TRUE;
 }
 
-static gboolean
-on_gp_drawing_area_button_press_event (GtkWidget      *widget,
-                                       GdkEventButton *event,
-                                       gpointer        user_data)
-{
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
-
-    if (event->button == GDK_BUTTON_PRIMARY)
-    {
-        GdkPoint pt = { event->x, event->y };
-        gp_tool_set_start_point (priv->tool, &pt);
-        gp_tool_set_current_point (priv->tool, &pt);
-        gp_tool_set_grabbed (priv->tool, TRUE);
-        repaint_surface (priv->active_surface, priv->base_surface);
-
-        gp_drawing_area_draw (GP_DRAWING_AREA (widget));
-    }
-    else if (event->button == GDK_BUTTON_SECONDARY && gp_tool_get_grabbed (priv->tool) == TRUE)
-    {
-        repaint_surface (priv->active_surface, priv->base_surface);
-        gp_drawing_area_queue_draw (GP_DRAWING_AREA (widget));
-        gp_tool_set_grabbed (priv->tool, FALSE);
-    }
-    return TRUE;
-}
-
-static gboolean
-on_gp_drawing_area_button_release_event (GtkWidget      *widget,
-                                       GdkEventButton *event,
-                                       gpointer        user_data)
-{
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
-
-    if (event->button == GDK_BUTTON_PRIMARY && gp_tool_get_grabbed (priv->tool) == TRUE)
-    {
-        repaint_surface (priv->base_surface, priv->active_surface);
-        gp_tool_set_grabbed (priv->tool, FALSE);
-    }
-}
-
-static gboolean
-on_gp_drawing_area_motion_notify_event (GtkWidget      *widget,
-                                        GdkEventMotion *event,
-                                        gpointer        data)
-{
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
-
-    if (event->state & GDK_BUTTON1_MASK && gp_tool_get_grabbed (priv->tool) == TRUE)
-    {
-        GdkPoint pt = { event->x, event->y };
-        gp_tool_set_current_point (priv->tool, &pt);
-
-        repaint_surface (priv->active_surface, priv->base_surface);
-
-        gp_drawing_area_draw (GP_DRAWING_AREA (widget));
-    }
-
-    return TRUE;
-}
-
-gboolean
-on_gp_drawing_area_enter_notify_event (GtkWidget *widget,
-                                       GdkEvent  *event,
-                                       gpointer   user_data)
-{
-    GdkWindow *window = gtk_widget_get_window (widget);
-
-    gdk_window_set_cursor (window, gdk_cursor_new_for_display (gdk_display_get_default(), GDK_CROSSHAIR));
-
-    return TRUE;
-}
-
 static void
 gp_drawing_area_init (GPDrawingArea *drawing_area)
 {
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
     gtk_widget_init_template (GTK_WIDGET (drawing_area));
 
-    priv->tool = NULL;
-
     gtk_widget_add_events (GTK_WIDGET (drawing_area),
-			   GDK_BUTTON_PRESS_MASK
-			   | GDK_BUTTON_RELEASE_MASK
-			   | GDK_POINTER_MOTION_MASK
-			   | GDK_ENTER_NOTIFY_MASK);
+                           GDK_BUTTON_PRESS_MASK
+                           | GDK_BUTTON_RELEASE_MASK
+                           | GDK_POINTER_MOTION_MASK
+                           | GDK_ENTER_NOTIFY_MASK);
 }
 
 static void
@@ -233,28 +197,22 @@ gp_drawing_area_class_init (GPDrawingAreaClass *klass)
 {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
+    widget_class->draw = on_gp_drawing_area_draw;
+
     gtk_widget_class_set_template_from_resource (widget_class,
                                                  "/org/gnome/Paint/gp-drawingarea.ui");
     gtk_widget_class_bind_template_callback (widget_class,
-                                             on_gp_drawing_area_button_press_event);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_gp_drawing_area_button_release_event);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_gp_drawing_area_motion_notify_event);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_gp_drawing_area_enter_notify_event);
-    gtk_widget_class_bind_template_callback (widget_class,
                                              on_gp_drawing_area_configure_event);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_gp_drawing_area_draw);
-}
 
-void
-gp_drawing_area_set_tool (GPDrawingArea *drawing_area, GPTool *tool)
-{
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
-
-    priv->tool = tool;
+    gp_drawing_area_signals[SIGNAL_DRAW_OVERLAY] =
+            g_signal_new ("draw-overlay",
+                          G_TYPE_FROM_CLASS (klass),
+                          0,
+                          0,
+                          NULL,
+                          NULL,
+                          gegl_gtk_marshal_VOID__BOXED,
+                          G_TYPE_NONE, 1, CAIRO_GOBJECT_TYPE_CONTEXT);
 }
 
 GtkWidget *
@@ -263,3 +221,10 @@ gp_drawing_area_new (void)
     return g_object_new (GP_TYPE_DRAWING_AREA, NULL);
 }
 
+cairo_surface_t*
+gp_drawing_area_get_surface (GPDrawingArea *drawing_area)
+{
+    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
+
+    return priv->base_surface;
+}

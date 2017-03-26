@@ -32,12 +32,25 @@ struct _GPToolClass
 
     void (*draw) (GPTool  *tool,
                   cairo_t *cairo_context);
+    void (*button_press) (GPTool *tool,
+                          GdkEventButton *event);
+    void (*move) (GPTool *tool,
+                  GdkEventMotion *event);
+    void (*button_release) (GPTool *tool,
+                            GdkEventButton *event,
+                            cairo_t *cairo_context);
     GtkWidget* (*create_icon) (GPTool *tool);
 };
 
 GtkWidget* gp_tool_create_icon (GPTool *tool);
 
 void gp_tool_draw (GPTool *tool, cairo_t *cairo_context);
+
+void gp_tool_button_press (GPTool *tool, GdkEventButton *event);
+
+void gp_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context);
+
+void gp_tool_move (GPTool *tool, GdkEventMotion *event);
 
 GdkPoint gp_tool_get_start_point (GPTool *tool);
 void gp_tool_set_start_point (GPTool *tool, const GdkPoint *point);

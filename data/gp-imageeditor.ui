@@ -35,6 +35,9 @@
                 <child>
                   <object class="GPDrawingArea" id="canvas">
 		    <property name="visible">True</property>
+		    <signal name="button-press-event" handler="on_canvas_button_press_event"/>
+		    <signal name="button-release-event" handler="on_canvas_button_release_event"/>
+		    <signal name="motion-notify-event" handler="on_canvas_motion_notify_event"/>
 		  </object>
                 </child>
               </object>

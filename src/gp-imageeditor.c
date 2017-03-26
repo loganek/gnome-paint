@@ -155,10 +155,80 @@ on_resizer_leave_notify_event (GtkWidget *widget,
 
 
 static gboolean
-on_canvas_notify_event (GtkWidget      *widget,
-                        GdkEventMotion *event,
-                        gpointer        user_data)
+on_canvas_button_press_event (GtkWidget      *widget,
+                              GdkEventButton *event,
+                              gpointer        user_data)
 {
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
+
+    if (event->button == GDK_BUTTON_PRIMARY)
+    {
+        GdkPoint pt = { event->x, event->y };
+        gp_tool_set_start_point (priv->tool, &pt);
+        gp_tool_set_current_point (priv->tool, &pt);
+        gp_tool_set_grabbed (priv->tool, TRUE);
+
+        gp_tool_button_press (priv->tool, event);
+
+        gtk_widget_queue_draw (widget);
+    }
+    else if (event->button == GDK_BUTTON_SECONDARY && gp_tool_get_grabbed (priv->tool) == TRUE)
+    {
+        gp_tool_set_grabbed (priv->tool, FALSE);
+    }
+
+    return TRUE;
+}
+
+static gboolean
+on_canvas_button_release_event (GtkWidget      *widget,
+                                GdkEventButton *event,
+                                gpointer        user_data)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
+
+    if (event->button == GDK_BUTTON_PRIMARY && gp_tool_get_grabbed (priv->tool) == TRUE)
+    {
+        cairo_t *cr = cairo_create (gp_drawing_area_get_surface (widget));
+        gp_tool_button_release (priv->tool, event, cr);
+        cairo_destroy (cr);
+
+        gtk_widget_queue_draw (widget);
+        gp_tool_set_grabbed (priv->tool, FALSE);
+    }
+}
+
+static void
+on_canvas_draw_overlay (GtkWidget *widget,
+                        cairo_t   *cr,
+                        gpointer   user_data)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
+
+    if (priv->tool != NULL && gp_tool_get_grabbed (priv->tool) == TRUE)
+    {
+        cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 1.0);
+        gp_tool_draw (priv->tool, cr);
+    }
+}
+
+static gboolean
+on_canvas_motion_notify_event (GtkWidget      *widget,
+                               GdkEventMotion *event,
+                               gpointer        user_data)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
+
+    if (event->state & GDK_BUTTON1_MASK && gp_tool_get_grabbed (priv->tool) == TRUE)
+    {
+        GdkPoint pt = { event->x, event->y };
+        gp_tool_set_current_point (priv->tool, &pt);
+
+        gp_tool_move (priv->tool, event);
+
+        gtk_widget_queue_draw (widget);
+    }
+
     return TRUE;
 }
 
@@ -171,8 +241,10 @@ gp_image_editor_init (GPImageEditor *self)
 
     priv->tool = NULL;
 
-    g_signal_connect (G_OBJECT (priv->canvas), "motion-notify-event",
-                      G_CALLBACK (on_canvas_notify_event), self);
+    g_signal_connect (priv->canvas,
+                      "draw-overlay",
+                      G_CALLBACK (on_canvas_draw_overlay),
+                      self);
 
     gtk_widget_add_events (GTK_WIDGET (priv->resizer),
                            GDK_BUTTON_PRESS_MASK
@@ -205,13 +277,23 @@ gp_image_editor_class_init (GPImageEditorClass *klass)
                                              on_resizer_enter_notify_event);
     gtk_widget_class_bind_template_callback (widget_class,
                                              on_resizer_leave_notify_event);
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_canvas_button_press_event);
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_canvas_button_release_event);
+    gtk_widget_class_bind_template_callback (widget_class,
+                                             on_canvas_motion_notify_event);
 
 }
 
 void
 gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool)
 {
-    GP_IMAGE_EDITOR_PRIV (image_editor)->tool = tool;
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
+    priv->tool = tool;
+
+    // TODO set cursor on show widget
+    gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (priv->canvas)), gdk_cursor_new_for_display (gdk_display_get_default(), GDK_CROSSHAIR));
 }
 
 GtkWidget *

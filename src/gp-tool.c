@@ -41,10 +41,28 @@ gp_tool_default_draw (GPTool *self, cairo_t *cairo_context)
 }
 
 static void
+gp_tool_default_button_press (GPTool *tool, GdkEventButton *event)
+{
+}
+
+static void
+gp_tool_default_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context)
+{
+}
+
+static void
+gp_tool_default_move (GPTool *tool, GdkEventMotion *event)
+{
+}
+
+static void
 gp_tool_class_init (GPToolClass *klass)
 {
     klass->create_icon = gp_tool_default_create_icon;
     klass->draw = gp_tool_default_draw;
+    klass->button_press = gp_tool_default_button_press;
+    klass->button_release = gp_tool_default_button_release;
+    klass->move = gp_tool_default_move;
 }
 
 static void
@@ -63,6 +81,24 @@ void
 gp_tool_draw (GPTool *tool, cairo_t *cairo_context)
 {
     GP_TOOL_GET_CLASS (tool)->draw (tool, cairo_context);
+}
+
+void
+gp_tool_button_press (GPTool *tool, GdkEventButton *event)
+{
+    GP_TOOL_GET_CLASS (tool)->button_press (tool, event);
+}
+
+void
+gp_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context)
+{
+    GP_TOOL_GET_CLASS (tool)->button_release (tool, event, cairo_context);
+}
+
+void
+gp_tool_move (GPTool *tool, GdkEventMotion *event)
+{
+    GP_TOOL_GET_CLASS (tool)->move (tool, event);
 }
 
 GdkPoint

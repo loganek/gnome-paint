@@ -30,7 +30,7 @@ G_DECLARE_FINAL_TYPE (GPDrawingArea, gp_drawing_area, GP, DRAWING_AREA, GtkDrawi
 
 GtkWidget* gp_drawing_area_new (void);
 
-void gp_drawing_area_set_tool (GPDrawingArea *drawing_area, GPTool *tool);
+cairo_surface_t* gp_drawing_area_get_surface (GPDrawingArea *drawing_area);
 
 G_END_DECLS
 

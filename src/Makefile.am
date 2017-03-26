@@ -5,6 +5,7 @@ gnome_paint_SOURCES =         \
 	gp-colorbutton.c      \
 	gp-colorselectorbox.c \
 	gp-drawingarea.c      \
+	gp-imageeditor.c      \
 	gp-linetool.c         \
 	gp-main.c             \
 	gp-rectangletool.c    \

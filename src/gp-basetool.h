@@ -1,4 +1,4 @@
-/* gp-linetool.h
+/* gp-basetool.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,18 +16,31 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_LINE_TOOL_H_
-#define GP_LINE_TOOL_H_
+#ifndef GP_BASE_TOOL_H_
+#define GP_BASE_TOOL_H_
 
-#include "gp-basetool.h"
+#include "gp-tool.h"
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_LINE_TOOL (gp_line_tool_get_type ())
-G_DECLARE_FINAL_TYPE (GPLineTool, gp_line_tool, GP, LINE_TOOL, GPBaseTool)
+#define GP_TYPE_BASE_TOOL (gp_base_tool_get_type ())
+G_DECLARE_DERIVABLE_TYPE (GPBaseTool, gp_base_tool, GP, BASE_TOOL, GPTool)
 
-GPTool* gp_line_tool_create ();
+struct _GPBaseToolClass
+{
+    GPToolClass parent_class;
+
+    void (*draw_bbox) (GPBaseTool *tool,
+                       cairo_t *cairo_context);
+    void (*pre_button_release) (GPBaseTool *tool,
+                                GdkEventButton *event,
+                                cairo_t *cr);
+};
+
+GdkPoint gp_base_tool_get_start_point (GPBaseTool *tool);
+
+GdkPoint gp_base_tool_get_current_point (GPBaseTool *tool);
 
 G_END_DECLS
 
-#endif /* GP_LINE_TOOL_H_ */
+#endif /* GP_BASE_TOOL_H_ */

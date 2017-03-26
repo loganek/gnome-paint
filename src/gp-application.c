@@ -166,20 +166,11 @@ gp_application_startup (GApplication *application)
 static void
 gp_application_finalize (GObject *object)
 {
-    GPApplication *application;
-    GPApplicationPrivate *priv;
-
-    application = GP_APPLICATION (object);
-    priv = gp_application_get_instance_private (application);
 }
 
 static void
 gp_application_init (GPApplication *application)
 {
-    GPApplicationPrivate *priv;
-
-    priv = gp_application_get_instance_private (application);
-
     g_application_add_main_option_entries (G_APPLICATION (application), options);
 }
 

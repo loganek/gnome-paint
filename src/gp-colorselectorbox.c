@@ -105,7 +105,6 @@ gp_color_selector_box_update_active_color_indicator (GPColorSelectorBox *color_s
 static void
 gp_color_selector_box_init (GPColorSelectorBox *color_selector_box)
 {
-    GPColorSelectorBoxPrivate *priv = gp_color_selector_box_get_instance_private (color_selector_box);
     gtk_widget_init_template (GTK_WIDGET (color_selector_box));
 
     gp_color_selector_box_update_active_color_indicator (color_selector_box);

@@ -2,6 +2,7 @@ bin_PROGRAMS = gnome-paint
 
 gnome_paint_SOURCES =         \
 	gp-application.c      \
+	gp-basetool.c         \
 	gp-colorbutton.c      \
 	gp-colorselectorbox.c \
 	gp-drawingarea.c      \

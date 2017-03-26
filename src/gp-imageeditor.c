@@ -19,6 +19,7 @@
 #include "config.h"
 
 #include "gp-imageeditor.h"
+#include "gp-drawingarea.h"
 
 #define RESIZE_MARGIN 15
 
@@ -72,7 +73,7 @@ on_resizer_button_press_event (GtkWidget      *widget,
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
 
-    priv->resize_mode = calculate_resize_mode (priv->resizer, event->x, event->y);
+    priv->resize_mode = calculate_resize_mode (GTK_WIDGET (priv->resizer), event->x, event->y);
 
     return TRUE;
 }
@@ -161,21 +162,7 @@ on_canvas_button_press_event (GtkWidget      *widget,
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
 
-    if (event->button == GDK_BUTTON_PRIMARY)
-    {
-        GdkPoint pt = { event->x, event->y };
-        gp_tool_set_start_point (priv->tool, &pt);
-        gp_tool_set_current_point (priv->tool, &pt);
-        gp_tool_set_grabbed (priv->tool, TRUE);
-
-        gp_tool_button_press (priv->tool, event);
-
-        gtk_widget_queue_draw (widget);
-    }
-    else if (event->button == GDK_BUTTON_SECONDARY && gp_tool_get_grabbed (priv->tool) == TRUE)
-    {
-        gp_tool_set_grabbed (priv->tool, FALSE);
-    }
+    gp_tool_button_press (priv->tool, event);
 
     return TRUE;
 }
@@ -186,16 +173,13 @@ on_canvas_button_release_event (GtkWidget      *widget,
                                 gpointer        user_data)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
+    cairo_t *cr = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
 
-    if (event->button == GDK_BUTTON_PRIMARY && gp_tool_get_grabbed (priv->tool) == TRUE)
-    {
-        cairo_t *cr = cairo_create (gp_drawing_area_get_surface (widget));
-        gp_tool_button_release (priv->tool, event, cr);
-        cairo_destroy (cr);
+    gp_tool_button_release (priv->tool, event, cr);
 
-        gtk_widget_queue_draw (widget);
-        gp_tool_set_grabbed (priv->tool, FALSE);
-    }
+    cairo_destroy (cr);
+
+    return TRUE;
 }
 
 static void
@@ -205,11 +189,8 @@ on_canvas_draw_overlay (GtkWidget *widget,
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
 
-    if (priv->tool != NULL && gp_tool_get_grabbed (priv->tool) == TRUE)
-    {
-        cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 1.0);
-        gp_tool_draw (priv->tool, cr);
-    }
+    cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 1.0);
+    gp_tool_draw (priv->tool, cr);
 }
 
 static gboolean
@@ -219,15 +200,7 @@ on_canvas_motion_notify_event (GtkWidget      *widget,
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
 
-    if (event->state & GDK_BUTTON1_MASK && gp_tool_get_grabbed (priv->tool) == TRUE)
-    {
-        GdkPoint pt = { event->x, event->y };
-        gp_tool_set_current_point (priv->tool, &pt);
-
-        gp_tool_move (priv->tool, event);
-
-        gtk_widget_queue_draw (widget);
-    }
+    gp_tool_move (priv->tool, event);
 
     return TRUE;
 }
@@ -290,6 +263,8 @@ void
 gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
+
+    gp_tool_set_canvas_widget (tool, GTK_WIDGET (priv->canvas));
     priv->tool = tool;
 
     // TODO set cursor on show widget

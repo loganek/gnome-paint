@@ -70,7 +70,6 @@ static void
 gp_color_button_class_init (GPColorButtonClass *klass)
 {
     GtkButtonClass *button_class = GTK_BUTTON_CLASS (klass);
-    GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
     double_clicked = button_class->clicked;
     button_class->clicked = NULL;

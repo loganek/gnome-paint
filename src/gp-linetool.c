@@ -20,17 +20,17 @@
 
 struct _GPLineTool
 {
-    GPTool parent_instance;
+    GPBaseTool parent_instance;
 };
 
-G_DEFINE_TYPE (GPLineTool, gp_line_tool, GP_TYPE_TOOL)
+G_DEFINE_TYPE (GPLineTool, gp_line_tool, GP_TYPE_BASE_TOOL)
 
 static void
-gp_line_tool_draw (GPTool *tool,
+gp_line_tool_draw (GPBaseTool *tool,
                    cairo_t *cairo_context)
 {
-    GdkPoint start_point = gp_tool_get_start_point (tool);
-    GdkPoint current_point = gp_tool_get_current_point (tool);
+    GdkPoint start_point = gp_base_tool_get_start_point (tool);
+    GdkPoint current_point = gp_base_tool_get_current_point (tool);
 
     cairo_move_to (cairo_context,
                    start_point.x,
@@ -48,7 +48,7 @@ gp_line_tool_create_icon (GPTool *tool)
 }
 
 static void
-gp_line_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context)
+gp_line_tool_button_release (GPBaseTool *tool, GdkEventButton *event, cairo_t *cairo_context)
 {
     gp_line_tool_draw (tool, cairo_context);
 }
@@ -62,10 +62,12 @@ static void
 gp_line_tool_class_init (GPLineToolClass *klass)
 {
     GPToolClass *tool_class = GP_TOOL_CLASS (klass);
+    GPBaseToolClass *base_tool_class = GP_BASE_TOOL_CLASS (klass);
 
-    tool_class->draw = gp_line_tool_draw;
     tool_class->create_icon = gp_line_tool_create_icon;
-    tool_class->button_release = gp_line_tool_button_release;
+
+    base_tool_class->pre_button_release = gp_line_tool_button_release;
+    base_tool_class->draw_bbox = gp_line_tool_draw;
 }
 
 GPTool*

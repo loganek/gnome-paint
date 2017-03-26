@@ -48,18 +48,12 @@ void gp_tool_draw (GPTool *tool, cairo_t *cairo_context);
 
 void gp_tool_button_press (GPTool *tool, GdkEventButton *event);
 
-void gp_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context);
+void gp_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_t *cairo_context);
 
 void gp_tool_move (GPTool *tool, GdkEventMotion *event);
 
-GdkPoint gp_tool_get_start_point (GPTool *tool);
-void gp_tool_set_start_point (GPTool *tool, const GdkPoint *point);
-
-GdkPoint gp_tool_get_current_point (GPTool *tool);
-void gp_tool_set_current_point (GPTool *tool, const GdkPoint *point);
-
-gboolean gp_tool_get_grabbed (GPTool *tool);
-void gp_tool_set_grabbed (GPTool *tool, gboolean grabbed);
+void gp_tool_set_canvas_widget (GPTool *tool, GtkWidget *widget);
+GtkWidget* gp_tool_get_canvas_widget (GPTool *tool);
 
 G_END_DECLS
 

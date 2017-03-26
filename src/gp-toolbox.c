@@ -38,7 +38,7 @@ struct _GPToolBox
 
 typedef struct
 {
-    gint active_tool_idx;
+    guint active_tool_idx;
     GtkFlowBox *flow_box;
     GSList *buttons_list;
     GArray *tools;
@@ -62,7 +62,7 @@ static void
 on_tool_button_toggled (GtkWidget *widget, gpointer user_data)
 {
     guint index = GPOINTER_TO_UINT (g_object_get_data (
-				    G_OBJECT (widget), "tool-index"));
+                                        G_OBJECT (widget), "tool-index"));
 
     if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget)) == FALSE)
     {
@@ -86,12 +86,12 @@ gp_tool_box_add_tool (GPToolBox *tool_box, GPTool *tool) // TODO make it public
     gtk_flow_box_insert (priv->flow_box, btn, 0);
 
     g_object_set_data (G_OBJECT (btn), "tool-index",
-		       GUINT_TO_POINTER (priv->tools->len));
+                       GUINT_TO_POINTER (priv->tools->len));
 
     g_signal_connect (G_OBJECT (btn),
-		      "toggled",
-		      G_CALLBACK (on_tool_button_toggled),
-		      tool_box);
+                      "toggled",
+                      G_CALLBACK (on_tool_button_toggled),
+                      tool_box);
 
     if (priv->buttons_list == NULL)
     {
@@ -113,11 +113,11 @@ gp_tool_box_class_init (GPToolBoxClass *klass)
                                                   flow_box);
 
     gp_tool_box_signals[TOOL_CHANGED] = g_signal_new ("tool-changed",
-				                      G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
-				                      G_SIGNAL_RUN_FIRST,
-				                      0,
-				                      NULL, NULL, NULL,
-				                      G_TYPE_NONE, 0);
+                                                      G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
+                                                      G_SIGNAL_RUN_FIRST,
+                                                      0,
+                                                      NULL, NULL, NULL,
+                                                      G_TYPE_NONE, 0);
 }
 
 static void
@@ -129,7 +129,7 @@ gp_tool_box_init (GPToolBox *tool_box)
 
     priv->buttons_list = NULL;
     priv->tools = g_array_new (FALSE, FALSE, sizeof (GPTool*));
-    priv->active_tool_idx = -1;
+    priv->active_tool_idx = 0;
 
     gp_tool_box_add_tool (tool_box, gp_line_tool_create ());
     gp_tool_box_add_tool (tool_box, gp_rectangle_tool_create ());
@@ -141,8 +141,7 @@ gp_tool_box_get_active_tool (GPToolBox *tool_box)
     GPToolBoxPrivate *priv = gp_tool_box_get_instance_private (tool_box);
 
     g_return_val_if_fail (priv->tools->len > 0
-			  && priv->active_tool_idx >= 0
-			  && priv->active_tool_idx < priv->tools->len, NULL);
+                          && priv->active_tool_idx < priv->tools->len, NULL);
 
     return g_array_index (priv->tools, GPTool*, priv->active_tool_idx);
 }

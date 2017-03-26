@@ -20,12 +20,8 @@
 
 typedef struct
 {
-    GdkPoint start_point;
-    GdkPoint current_point;
-    gboolean grabbed;
+    GtkWidget *widget;
 } GPToolPrivate;
-
-#define GP_TOOL_GET_PRIVATE(tool) ((GPToolPrivate *)gp_tool_get_instance_private (tool))
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPTool, gp_tool, G_TYPE_OBJECT)
 
@@ -35,7 +31,7 @@ gp_tool_default_create_icon (GPTool *self)
     return NULL; // TODO
 }
 
-static GtkWidget *
+static void
 gp_tool_default_draw (GPTool *self, cairo_t *cairo_context)
 {
 }
@@ -46,7 +42,7 @@ gp_tool_default_button_press (GPTool *tool, GdkEventButton *event)
 }
 
 static void
-gp_tool_default_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context)
+gp_tool_default_button_release (GPTool *tool, GdkEventButton *event, cairo_t *cairo_context)
 {
 }
 
@@ -68,13 +64,15 @@ gp_tool_class_init (GPToolClass *klass)
 static void
 gp_tool_init (GPTool *self)
 {
-    GP_TOOL_GET_PRIVATE (self)->grabbed = FALSE;
+    GPToolPrivate *priv = gp_tool_get_instance_private (self);
+
+    priv->widget = NULL;
 }
 
 GtkWidget*
 gp_tool_create_icon (GPTool *tool)
 {
-    GP_TOOL_GET_CLASS (tool)->create_icon (tool);
+    return GP_TOOL_GET_CLASS (tool)->create_icon (tool);
 }
 
 void
@@ -90,7 +88,7 @@ gp_tool_button_press (GPTool *tool, GdkEventButton *event)
 }
 
 void
-gp_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_content_t *cairo_context)
+gp_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_t *cairo_context)
 {
     GP_TOOL_GET_CLASS (tool)->button_release (tool, event, cairo_context);
 }
@@ -101,37 +99,18 @@ gp_tool_move (GPTool *tool, GdkEventMotion *event)
     GP_TOOL_GET_CLASS (tool)->move (tool, event);
 }
 
-GdkPoint
-gp_tool_get_start_point (GPTool *tool)
-{
-    return GP_TOOL_GET_PRIVATE (tool)->start_point;
-}
-
 void
-gp_tool_set_start_point (GPTool *tool, const GdkPoint *point)
+gp_tool_set_canvas_widget (GPTool *tool, GtkWidget *widget)
 {
-    GP_TOOL_GET_PRIVATE (tool)->start_point = *point;
+    GPToolPrivate *priv = gp_tool_get_instance_private (tool);
+
+    priv->widget = widget;
 }
 
-GdkPoint gp_tool_get_current_point (GPTool *tool)
+GtkWidget*
+gp_tool_get_canvas_widget (GPTool *tool)
 {
-    return GP_TOOL_GET_PRIVATE (tool)->current_point;
-}
+    GPToolPrivate *priv = gp_tool_get_instance_private (tool);
 
-void
-gp_tool_set_current_point (GPTool *tool, const GdkPoint *point)
-{
-    GP_TOOL_GET_PRIVATE (tool)->current_point = *point;
-}
-
-gboolean
-gp_tool_get_grabbed (GPTool *tool)
-{
-    return GP_TOOL_GET_PRIVATE (tool)->grabbed;
-}
-
-void
-gp_tool_set_grabbed (GPTool *tool, gboolean grabbed)
-{
-    GP_TOOL_GET_PRIVATE (tool)->grabbed = grabbed;
+    return priv->widget;
 }

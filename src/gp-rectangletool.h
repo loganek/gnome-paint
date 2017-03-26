@@ -19,12 +19,12 @@
 #ifndef GP_RECTANGLE_TOOL_H_
 #define GP_RECTANGLE_TOOL_H_
 
-#include "gp-tool.h"
+#include "gp-basetool.h"
 
 G_BEGIN_DECLS
 
 #define GP_TYPE_RECTANGLE_TOOL (gp_rectangle_tool_get_type ())
-G_DECLARE_FINAL_TYPE (GPRectangleTool, gp_rectangle_tool, GP, RECTANGLE_TOOL, GPTool)
+G_DECLARE_FINAL_TYPE (GPRectangleTool, gp_rectangle_tool, GP, RECTANGLE_TOOL, GPBaseTool)
 
 GPTool* gp_rectangle_tool_create ();
 

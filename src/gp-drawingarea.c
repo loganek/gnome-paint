@@ -123,37 +123,9 @@ init_surface (cairo_surface_t **surface, GtkWidget *widget)
     *surface = tmp_surface;
 }
 
-static void
-gp_drawing_area_queue_draw (GPDrawingArea *drawing_area)
-{
-    GtkWidget *widget = GTK_WIDGET (drawing_area);
-
-    gtk_widget_queue_draw_area (
-                widget,
-                0, 0,
-                gtk_widget_get_allocated_width (widget),
-                gtk_widget_get_allocated_height (widget));
-}
-
-static void
-gp_drawing_area_draw (GPDrawingArea *drawing_area)
-{
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
-    cairo_t *cr;
-
-
-    cr = cairo_create (priv->active_surface);
-
-
-    cairo_destroy (cr);
-
-    gp_drawing_area_queue_draw (drawing_area);
-}
-
 static gboolean
 on_gp_drawing_area_draw (GtkWidget *widget,
-                         cairo_t   *cr,
-                         gpointer   data)
+                         cairo_t   *cr)
 {
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
 
@@ -182,7 +154,6 @@ on_gp_drawing_area_configure_event (GtkWidget         *widget,
 static void
 gp_drawing_area_init (GPDrawingArea *drawing_area)
 {
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
     gtk_widget_init_template (GTK_WIDGET (drawing_area));
 
     gtk_widget_add_events (GTK_WIDGET (drawing_area),

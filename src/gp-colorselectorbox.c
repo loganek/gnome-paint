@@ -83,10 +83,10 @@ gp_color_selector_box_populate_default_colors (GPColorSelectorBox *color_selecto
         gtk_flow_box_insert (priv->flow_box, btn, i);
 
         g_signal_connect(G_OBJECT(btn), "singleclicked",
-			 G_CALLBACK(on_gb_color_selector_box_color_changed),
+                         G_CALLBACK(on_gb_color_selector_box_color_changed),
                          color_selector_box);
         g_signal_connect(G_OBJECT(btn), "color-set",
-			 G_CALLBACK(on_gb_color_selector_box_color_changed),
+                         G_CALLBACK(on_gb_color_selector_box_color_changed),
                          color_selector_box);
     }
 }
@@ -109,6 +109,8 @@ gp_color_selector_box_init (GPColorSelectorBox *color_selector_box)
 
     gp_color_selector_box_update_active_color_indicator (color_selector_box);
     gp_color_selector_box_populate_default_colors (color_selector_box);
+
+    gp_color_selector_box_set_color (color_selector_box, &default_colors[1]); // TODO hack
 }
 
 static void
@@ -124,11 +126,11 @@ gp_color_selector_box_class_init (GPColorSelectorBoxClass *klass)
                                                   active_color_indicator);
 
     gp_color_selector_box_signals[COLOR_CHANGED] = g_signal_new ("color-changed",
-				                                 G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
-				                                 G_SIGNAL_RUN_FIRST,
-				                                 0,
-				                                 NULL, NULL, NULL,
-				                                 G_TYPE_NONE, 0);
+                                                                 G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
+                                                                 G_SIGNAL_RUN_FIRST,
+                                                                 0,
+                                                                 NULL, NULL, NULL,
+                                                                 G_TYPE_NONE, 0);
 }
 
 void

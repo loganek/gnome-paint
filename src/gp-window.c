@@ -20,6 +20,7 @@
 
 #include "gp-toolbox.h"
 #include "gp-imageeditor.h"
+#include "gp-colorselectorbox.h"
 
 #include <glib/gi18n.h>
 
@@ -34,6 +35,7 @@ typedef struct
     GtkFrame *main_frame;
     GPImageEditor *image_editor;
     GPToolBox *tool_box;
+    GPColorSelectorBox *color_selector_box;
 } GPWindowPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPWindow, gp_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -47,6 +49,16 @@ on_tool_changed (GtkWidget *widget, gpointer user_data)
 }
 
 static void
+on_color_changed (GtkWidget *widget, gpointer user_data)
+{
+    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
+
+    GdkRGBA color;
+    gp_color_selector_box_get_color (GP_COLOR_SELECTOR_BOX (widget), &color);
+    gp_image_editor_set_color (priv->image_editor, &color);
+}
+
+static void
 gp_window_class_init (GPWindowClass *klass)
 {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -57,6 +69,8 @@ gp_window_class_init (GPWindowClass *klass)
                                                   image_editor);
     gtk_widget_class_bind_template_child_private (widget_class, GPWindow,
                                                   tool_box);
+    gtk_widget_class_bind_template_child_private (widget_class, GPWindow,
+                                                  color_selector_box);
 }
 
 static void
@@ -70,8 +84,13 @@ gp_window_init (GPWindow *window)
     gtk_widget_set_size_request (GTK_WIDGET (priv->image_editor), 100, 100); // TODO
 
     g_signal_connect (priv->tool_box, "tool-changed", G_CALLBACK (on_tool_changed), window);
+    g_signal_connect (priv->color_selector_box, "color-changed", G_CALLBACK (on_color_changed), window);
 
     gp_image_editor_set_tool (priv->image_editor, gp_tool_box_get_active_tool (priv->tool_box));
+
+    GdkRGBA color;
+    gp_color_selector_box_get_color (priv->color_selector_box, &color);
+    gp_image_editor_set_color (priv->image_editor, &color);
 }
 
 GtkWidget *

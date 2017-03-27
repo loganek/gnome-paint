@@ -49,7 +49,7 @@
               </packing>
             </child>
             <child>
-              <object class="GPColorSelectorBox">
+              <object class="GPColorSelectorBox" id="color_selector_box">
 		<property name="visible">True</property>
 	      </object>
               <packing>

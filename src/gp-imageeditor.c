@@ -41,6 +41,7 @@ struct _GPImageEditor
 typedef struct
 {
     GPTool *tool;
+    GdkRGBA color;
     GPResizeMode resize_mode;
     GtkEventBox *resizer;
     GtkDrawingArea *canvas;
@@ -175,6 +176,7 @@ on_canvas_button_release_event (GtkWidget      *widget,
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
     cairo_t *cr = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
 
+    cairo_set_source_rgba (cr, priv->color.red, priv->color.green, priv->color.blue, priv->color.alpha);
     gp_tool_button_release (priv->tool, event, cr);
 
     cairo_destroy (cr);
@@ -189,8 +191,12 @@ on_canvas_draw_overlay (GtkWidget *widget,
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
 
-    cairo_set_source_rgba (cr, 0.0, 0.0, 0.0, 1.0);
+    cairo_save (cr);
+    cairo_set_source_rgba (cr, priv->color.red, priv->color.green, priv->color.blue, priv->color.alpha);
+
     gp_tool_draw (priv->tool, cr);
+
+    cairo_restore (cr);
 }
 
 static gboolean
@@ -271,9 +277,16 @@ gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool)
     gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (priv->canvas)), gdk_cursor_new_for_display (gdk_display_get_default(), GDK_CROSSHAIR));
 }
 
+void
+gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
+
+    priv->color = *color;
+}
+
 GtkWidget *
 gp_image_editor_new (void)
 {
     return g_object_new (GP_TYPE_IMAGE_EDITOR, NULL);
 }
-

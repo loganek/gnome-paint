@@ -17,6 +17,7 @@
  */
 
 #include "gp-tool.h"
+#include "gp-toolproperty.h"
 
 typedef struct
 {
@@ -24,6 +25,12 @@ typedef struct
 } GPToolPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPTool, gp_tool, G_TYPE_OBJECT)
+
+static void
+apply_property (gpointer ptr, gpointer user_data)
+{
+    GP_TOOL_PROPERTY_GET_CLASS (ptr)->apply (GP_TOOL_PROPERTY (ptr), user_data);
+}
 
 static GtkWidget *
 gp_tool_default_create_icon (GPTool *self)
@@ -97,6 +104,22 @@ void
 gp_tool_move (GPTool *tool, GdkEventMotion *event)
 {
     GP_TOOL_GET_CLASS (tool)->move (tool, event);
+}
+
+void
+gp_tool_apply_properties (GPTool *tool, cairo_t *cairo_context)
+{
+    const GPtrArray *properties = gp_tool_get_properties (tool);
+
+    g_ptr_array_foreach ((GPtrArray *) properties,
+                         apply_property,
+                         cairo_context);
+}
+
+const GPtrArray*
+gp_tool_get_properties (GPTool *tool)
+{
+    return GP_TOOL_GET_CLASS (tool)->get_properties (tool);
 }
 
 void

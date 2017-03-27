@@ -17,10 +17,12 @@
  */
 
 #include "gp-rectangletool.h"
+#include "gp-sizetoolproperty.h"
 
 struct _GPRectangleTool
 {
     GPBaseTool parent_instance;
+    GPtrArray *properties;
 };
 
 G_DEFINE_TYPE (GPRectangleTool, gp_rectangle_tool, GP_TYPE_BASE_TOOL)
@@ -31,6 +33,8 @@ gp_rectangle_tool_draw (GPBaseTool *tool,
 {
     GdkPoint start_point = gp_base_tool_get_start_point (tool);
     GdkPoint current_point = gp_base_tool_get_current_point (tool);
+
+    gp_tool_apply_properties (GP_TOOL (tool), cairo_context);
 
     cairo_rectangle (cairo_context,
                      start_point.x, start_point.y,
@@ -51,9 +55,33 @@ gp_rectangle_tool_create_icon (GPTool *tool)
     return gtk_image_new_from_resource ("/org/gnome/Paint/toolicons/rectangle.png");
 }
 
+static const GPtrArray*
+gp_rectangle_tool_get_properties (GPTool *tool)
+{
+    return GP_RECTANGLE_TOOL (tool)->properties;
+}
+
+static void
+gp_rectangle_tool_free_property (gpointer data)
+{
+    g_object_unref (G_OBJECT (data));
+}
+
+static void
+gp_rectangle_tool_finalize (GObject *gobj)
+{
+    GPRectangleTool *rectangle_tool = GP_RECTANGLE_TOOL (gobj);
+
+    g_ptr_array_free (rectangle_tool->properties, TRUE);
+    rectangle_tool->properties = NULL;
+}
+
 static void
 gp_rectangle_tool_init (GPRectangleTool *self)
 {
+    self->properties = g_ptr_array_new_with_free_func (gp_rectangle_tool_free_property);
+
+    g_ptr_array_add (self->properties, gp_size_tool_property_create ());
 }
 
 static void
@@ -61,11 +89,15 @@ gp_rectangle_tool_class_init (GPRectangleToolClass *klass)
 {
     GPToolClass *tool_class = GP_TOOL_CLASS (klass);
     GPBaseToolClass *base_tool_class = GP_BASE_TOOL_CLASS (klass);
+    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     tool_class->create_icon = gp_rectangle_tool_create_icon;
+    tool_class->get_properties = gp_rectangle_tool_get_properties;
 
     base_tool_class->pre_button_release = gp_rectangle_tool_button_release;
     base_tool_class->draw_bbox = gp_rectangle_tool_draw;
+
+    gobject_class->finalize = gp_rectangle_tool_finalize;
 }
 
 GPTool*

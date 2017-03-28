@@ -77,7 +77,7 @@ gp_application_handle_local_options (GApplication *application,
 {
     if (g_variant_dict_contains (options, "version"))
     {
-        g_print ("%s - Version %s\n", g_get_application_name (), PACKAGE_VERSION);
+        g_print (_("%s - Version %s\n"), g_get_application_name (), PACKAGE_VERSION);
         return 0;
     }
 
@@ -131,7 +131,7 @@ on_help (GSimpleAction *action,
 
     if (error)
     {
-        g_debug ("Error while opening help: %s", error->message);
+        g_debug (_("Error while opening help: %s"), error->message);
         g_error_free (error);
     }
 }

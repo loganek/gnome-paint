@@ -70,10 +70,11 @@ repaint_surface (cairo_surface_t *dest_surface, cairo_surface_t *src_surface)
 static void
 init_surface (cairo_surface_t **surface, GtkWidget *widget)
 {
-    cairo_surface_t *tmp_surface = gdk_window_create_similar_surface (gtk_widget_get_window (widget),
-                                                                      CAIRO_CONTENT_COLOR,
-                                                                      gtk_widget_get_allocated_width (widget),
-                                                                      gtk_widget_get_allocated_height (widget));
+    cairo_surface_t *tmp_surface = gdk_window_create_similar_image_surface (gtk_widget_get_window (widget),
+                                                                            CAIRO_FORMAT_RGB24,
+                                                                            gtk_widget_get_allocated_width (widget),
+                                                                            gtk_widget_get_allocated_height (widget),
+                                                                            0);
 
     clear_surface (tmp_surface);
 

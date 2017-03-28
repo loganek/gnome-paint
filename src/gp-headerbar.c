@@ -19,13 +19,12 @@
 #include "config.h"
 
 #include "gp-headerbar.h"
-#include "gp-marshal.h"
 
 #include <string.h>
 
 enum
 {
-    SIGNAL_FILE_OPEN,
+    SIGNAL_TRY_FILE_OPEN,
     LAST_SIGNAL
 };
 
@@ -46,30 +45,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (GPHeaderBar, gp_header_bar, GTK_TYPE_HEADER_BAR)
 static void
 on_open_button_clicked (GtkWidget *widget, gpointer user_data)
 {
-    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-    gint res;
-
-    GtkWidget *dialog = gtk_file_chooser_dialog_new ("Open File",
-                                                     GTK_WINDOW (gtk_widget_get_toplevel (widget)),
-                                                     action,
-                                                     "_Cancel",
-                                                     GTK_RESPONSE_CANCEL,
-                                                     "_Open",
-                                                     GTK_RESPONSE_ACCEPT,
-                                                     NULL);
-
-    res = gtk_dialog_run (GTK_DIALOG (dialog));
-    if (res == GTK_RESPONSE_ACCEPT)
-    {
-        GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-        char *filename = gtk_file_chooser_get_filename (chooser);
-
-        g_signal_emit (GP_HEADER_BAR (user_data), gp_header_bar_signals[SIGNAL_FILE_OPEN], 0, filename, NULL);
-
-        g_free (filename);
-    }
-
-    gtk_widget_destroy (dialog);
+    g_signal_emit (GP_HEADER_BAR (user_data), gp_header_bar_signals[SIGNAL_TRY_FILE_OPEN], 0, NULL);
 }
 
 static void
@@ -90,15 +66,15 @@ gp_header_bar_class_init (GPHeaderBarClass *klass)
     gtk_widget_class_bind_template_callback (widget_class,
                                              on_open_button_clicked);
 
-    gp_header_bar_signals[SIGNAL_FILE_OPEN] =
-            g_signal_new ("file-open",
+    gp_header_bar_signals[SIGNAL_TRY_FILE_OPEN] =
+            g_signal_new ("try-file-open",
                           G_TYPE_FROM_CLASS (klass),
-                          0,
+                          G_SIGNAL_RUN_FIRST,
                           0,
                           NULL,
                           NULL,
-                          gp_VOID__STRING,
-                          G_TYPE_NONE, 1, G_TYPE_STRING);
+                          NULL,
+                          G_TYPE_NONE, 0);
 
 }
 

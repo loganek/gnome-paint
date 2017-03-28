@@ -21,6 +21,8 @@
 #include "gp-imageeditor.h"
 #include "gp-drawingarea.h"
 
+#include <glib/gi18n.h>
+
 #define RESIZE_MARGIN 15
 
 typedef enum
@@ -319,4 +321,26 @@ gp_image_editor_open_file (GPImageEditor *image_editor, const gchar *filename, G
     gp_drawing_area_load_from_pixbuf (priv->canvas, pixbuf);
 
     g_object_unref (G_OBJECT( pixbuf));
+}
+
+void
+gp_image_editor_save_file (GPImageEditor *image_editor, const gchar *filename, GError **error)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
+    cairo_surface_t *surface = gp_drawing_area_get_surface (priv->canvas);
+
+    GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface,
+                                 0, 0,
+                                 cairo_image_surface_get_width (surface),
+                                 cairo_image_surface_get_height (surface));
+
+    if (pixbuf == NULL)
+    {
+        *error = g_error_new (GDK_PIXBUF_ERROR, GDK_PIXBUF_ERROR_FAILED, _("cannot convert cairo surface to Gdk.Pixbuf"));
+        return;
+    }
+
+    gboolean ret = gdk_pixbuf_save (pixbuf, filename, "png", error, NULL); // TODO possible formats can be loaded automatically (see documentation), support parameters
+
+    g_object_unref (G_OBJECT (pixbuf));
 }

@@ -44,7 +44,8 @@ typedef struct
     GdkRGBA color;
     GPResizeMode resize_mode;
     GtkEventBox *resizer;
-    GtkDrawingArea *canvas;
+    GPDrawingArea *canvas;
+    GtkAlignment *alignment;
 } GPImageEditorPrivate;
 
 #define GP_IMAGE_EDITOR_PRIV(image_editor) ((GPImageEditorPrivate *) gp_image_editor_get_instance_private (image_editor))
@@ -246,6 +247,8 @@ gp_image_editor_class_init (GPImageEditorClass *klass)
                                                   resizer);
     gtk_widget_class_bind_template_child_private (widget_class, GPImageEditor,
                                                   canvas);
+    gtk_widget_class_bind_template_child_private (widget_class, GPImageEditor,
+                                                  alignment);
     gtk_widget_class_bind_template_callback (widget_class,
                                              on_resizer_button_press_event);
     gtk_widget_class_bind_template_callback (widget_class,
@@ -289,4 +292,31 @@ GtkWidget *
 gp_image_editor_new (void)
 {
     return g_object_new (GP_TYPE_IMAGE_EDITOR, NULL);
+}
+
+void
+gp_image_editor_open_file (GPImageEditor *image_editor, const gchar *filename, GError **error)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
+    GdkPixbuf *pixbuf = NULL;
+    guint bottom_align, right_align;
+
+    g_assert (error != NULL);
+
+    pixbuf = gdk_pixbuf_new_from_file (filename, error);
+
+    if (*error != NULL)
+    {
+        return;
+    }
+
+    gtk_alignment_get_padding (priv->alignment, NULL, &bottom_align, NULL, &right_align);
+
+    gtk_widget_set_size_request (GTK_WIDGET (priv->resizer),
+                                 gdk_pixbuf_get_width (pixbuf) + right_align,
+                                 gdk_pixbuf_get_height (pixbuf) + bottom_align);
+
+    gp_drawing_area_load_from_pixbuf (priv->canvas, pixbuf);
+
+    g_object_unref (G_OBJECT( pixbuf));
 }

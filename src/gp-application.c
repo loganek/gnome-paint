@@ -24,6 +24,7 @@
 #include "gp-drawingarea.h"
 #include "gp-toolbox.h"
 #include "gp-imageeditor.h"
+#include "gp-headerbar.h"
 
 #include <glib/gi18n.h>
 
@@ -160,6 +161,7 @@ gp_application_startup (GApplication *application)
     gp_color_selector_box_get_type ();
     gp_tool_box_get_type ();
     gp_image_editor_get_type ();
+    gp_header_bar_get_type ();
 }
 
 

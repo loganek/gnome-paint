@@ -21,6 +21,7 @@
 #include "gp-toolbox.h"
 #include "gp-imageeditor.h"
 #include "gp-colorselectorbox.h"
+#include "gp-headerbar.h"
 
 #include <glib/gi18n.h>
 
@@ -36,6 +37,7 @@ typedef struct
     GPImageEditor *image_editor;
     GPToolBox *tool_box;
     GPColorSelectorBox *color_selector_box;
+    GPHeaderBar *header_bar;
 } GPWindowPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPWindow, gp_window, GTK_TYPE_APPLICATION_WINDOW)
@@ -59,6 +61,34 @@ on_color_changed (GtkWidget *widget, gpointer user_data)
 }
 
 static void
+on_file_open (GtkWidget *widget, const gchar *filename, gpointer user_data)
+{
+    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
+    GtkWidget *dialog = NULL;
+    GError *error = NULL;
+
+    gp_image_editor_open_file (priv->image_editor, filename, &error);
+
+    if (error != NULL)
+    {
+        dialog = gtk_message_dialog_new (GTK_WINDOW (user_data),
+                                         GTK_DIALOG_DESTROY_WITH_PARENT,
+                                         GTK_MESSAGE_ERROR,
+                                         GTK_BUTTONS_CLOSE,
+                                         "Error on opening file \"%s\": %s",
+                                         filename,
+                                         error->message);
+        g_error_free (error);
+        gtk_dialog_run (GTK_DIALOG (dialog));
+        gtk_widget_destroy (dialog);
+    }
+    else
+    {
+        gp_header_bar_set_filename (priv->header_bar, filename, FALSE);
+    }
+}
+
+static void
 gp_window_class_init (GPWindowClass *klass)
 {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -71,6 +101,8 @@ gp_window_class_init (GPWindowClass *klass)
                                                   tool_box);
     gtk_widget_class_bind_template_child_private (widget_class, GPWindow,
                                                   color_selector_box);
+    gtk_widget_class_bind_template_child_private (widget_class, GPWindow,
+                                                  header_bar);
 }
 
 static void
@@ -81,10 +113,9 @@ gp_window_init (GPWindow *window)
 
     priv = gp_window_get_instance_private (window);
 
-    gtk_widget_set_size_request (GTK_WIDGET (priv->image_editor), 100, 100); // TODO
-
     g_signal_connect (priv->tool_box, "tool-changed", G_CALLBACK (on_tool_changed), window);
     g_signal_connect (priv->color_selector_box, "color-changed", G_CALLBACK (on_color_changed), window);
+    g_signal_connect (priv->header_bar, "file-open", G_CALLBACK (on_file_open), window);
 
     gp_image_editor_set_tool (priv->image_editor, gp_tool_box_get_active_tool (priv->tool_box));
 

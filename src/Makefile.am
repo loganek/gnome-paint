@@ -1,15 +1,24 @@
 bin_PROGRAMS = gnome-paint
 
+gp-marshal.h: marshal.list
+	glib-genmarshal --prefix=gp ./marshal.list --header > gp-marshal.h
+gp-marshal.c: marshal.list gp-marshal.h
+	glib-genmarshal --prefix=gp ./marshal.list --body > gp-marshal.c
+
 gnome_paint_SOURCES =         \
 	gp-application.c      \
 	gp-basetool.c         \
 	gp-colorbutton.c      \
 	gp-colorselectorbox.c \
 	gp-drawingarea.c      \
+	gp-headerbar.c        \
 	gp-imageeditor.c      \
 	gp-linetool.c         \
 	gp-main.c             \
+	gp-marshal.c          \
+	gp-toolproperty.c     \
 	gp-rectangletool.c    \
+	gp-sizetoolproperty.c \
 	gp-tool.c             \
 	gp-toolbox.c          \
 	gp-window.c

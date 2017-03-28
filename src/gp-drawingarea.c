@@ -18,7 +18,7 @@
 
 #include "config.h"
 
-#include "gp-tool.h"
+#include "gp-marshal.h"
 #include "gp-drawingarea.h"
 
 #include <cairo-gobject.h>
@@ -28,43 +28,6 @@ enum
     SIGNAL_DRAW_OVERLAY,
     LAST_SIGNAL
 };
-
-#define g_marshal_value_peek_boxed(v)    (v)->data[0].v_pointer
-
-void
-gegl_gtk_marshal_VOID__BOXED (GClosure     *closure,
-                                    GValue       *return_value G_GNUC_UNUSED,
-                                    guint         n_param_values,
-                                    const GValue *param_values,
-                                    gpointer      invocation_hint G_GNUC_UNUSED,
-                                    gpointer      marshal_data)
-{
-    typedef void (*GMarshalFunc_VOID__BOXED) (gpointer     data1,
-                                                    gpointer     arg_1,
-                                                    gpointer     data2);
-    GMarshalFunc_VOID__BOXED callback;
-    GCClosure *cc = (GCClosure*) closure;
-    gpointer data1, data2;
-
-    g_return_if_fail (n_param_values == 2);
-
-    if (G_CCLOSURE_SWAP_DATA (closure))
-    {
-        data1 = closure->data;
-        data2 = g_value_peek_pointer (param_values + 0);
-    }
-    else
-    {
-        data1 = g_value_peek_pointer (param_values + 0);
-        data2 = closure->data;
-    }
-    callback = (GMarshalFunc_VOID__BOXED) (marshal_data ? marshal_data : cc->callback);
-
-    callback (data1,
-              g_marshal_value_peek_boxed (param_values + 1),
-              data2);
-}
-
 
 static guint gp_drawing_area_signals[LAST_SIGNAL] = { 0 };
 
@@ -182,7 +145,7 @@ gp_drawing_area_class_init (GPDrawingAreaClass *klass)
                           0,
                           NULL,
                           NULL,
-                          gegl_gtk_marshal_VOID__BOXED,
+                          gp_VOID__BOXED,
                           G_TYPE_NONE, 1, CAIRO_GOBJECT_TYPE_CONTEXT);
 }
 
@@ -198,4 +161,13 @@ gp_drawing_area_get_surface (GPDrawingArea *drawing_area)
     GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
 
     return priv->base_surface;
+}
+
+void
+gp_drawing_area_load_from_pixbuf (GPDrawingArea *drawing_area, GdkPixbuf *pixbuf)
+{
+    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
+
+    priv->base_surface = gdk_cairo_surface_create_from_pixbuf (pixbuf, 0,
+                                                               gtk_widget_get_window (GTK_WIDGET (drawing_area)));
 }

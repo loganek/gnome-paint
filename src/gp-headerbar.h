@@ -1,4 +1,4 @@
-/* gp-drawingarea.h
+/* gp-headerbar.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,24 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_DRAWING_AREA_H_
-#define GP_DRAWING_AREA_H_
-
-#include "gp-tool.h"
+#ifndef GP_HEADER_BAR_H_
+#define GP_HEADER_BAR_H_
 
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_DRAWING_AREA (gp_drawing_area_get_type ())
-G_DECLARE_FINAL_TYPE (GPDrawingArea, gp_drawing_area, GP, DRAWING_AREA, GtkDrawingArea)
+#define GP_TYPE_HEADER_BAR (gp_header_bar_get_type ())
+G_DECLARE_FINAL_TYPE (GPHeaderBar, gp_header_bar, GP, HEADER_BAR, GtkHeaderBar)
 
-GtkWidget* gp_drawing_area_new (void);
+GtkWidget* gp_header_bar_new (void);
 
-cairo_surface_t* gp_drawing_area_get_surface (GPDrawingArea *drawing_area);
-
-void gp_drawing_area_load_from_pixbuf (GPDrawingArea *drawing_area, GdkPixbuf *pixbuf);
+void gp_header_bar_set_filename (GPHeaderBar *header_bar, const gchar *filename, gboolean modified);
 
 G_END_DECLS
 
-#endif /* GP_DRAWING_AREA_H_ */
+#endif /* GP_HEADER_BAR_H_ */

@@ -34,6 +34,8 @@ void gp_image_editor_set_tool (GPImageEditor *self, GPTool *tool);
 
 void gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color);
 
+void gp_image_editor_open_file (GPImageEditor *image_editor, const gchar *filename, GError **error);
+
 G_END_DECLS
 
 #endif /* GP_DRAWING_AREA_H_ */

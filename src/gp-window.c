@@ -23,6 +23,7 @@
 #include "gp-colorselectorbox.h"
 #include "gp-headerbar.h"
 #include "gp-documentinfo.h"
+#include "gp-dialogutils.h"
 
 #include <glib/gi18n.h>
 
@@ -65,7 +66,15 @@ on_color_changed (GtkWidget *widget, gpointer user_data)
 static gchar*
 gp_window_request_new_filename (GPWindow *window)
 {
-    return g_strdup ("/home/loganek/todo.png"); // TODO
+    GPWindowPrivate *priv = gp_window_get_instance_private (window);
+    gchar *suggested_filename = gp_document_info_get_filename (priv->document_info);
+    gchar *new_filename = NULL;
+
+    gp_dialog_utils_show_image_save_dialog (GTK_WINDOW (window), suggested_filename, &new_filename);
+
+    g_free (suggested_filename);
+
+    return new_filename;
 }
 
 static gboolean
@@ -74,15 +83,14 @@ gp_window_close_document (GPWindow *window)
     GPWindowPrivate *priv = gp_window_get_instance_private (window);
     GError *error = NULL;
     gboolean ret = TRUE;
+    gchar *filename = NULL;
 
-    if (gp_document_info_is_modified (priv->document_info) == FALSE)
+    if (gp_document_info_get_is_modified (priv->document_info) == FALSE)
     {
         return TRUE;
     }
 
-    gchar *filename = gp_document_info_get_filename (priv->document_info);
-
-    if (filename == NULL)
+    if (gp_document_info_has_user_defined_name (priv->document_info) == FALSE)
     {
         filename = gp_window_request_new_filename (window);
 
@@ -90,6 +98,10 @@ gp_window_close_document (GPWindow *window)
         {
             return FALSE;
         }
+    }
+    else
+    {
+        filename = gp_document_info_get_filename (priv->document_info);
     }
 
     gp_image_editor_save_file (priv->image_editor, filename, &error);
@@ -101,8 +113,12 @@ gp_window_close_document (GPWindow *window)
     }
     else
     {
-        // TODO print error
+        gp_dialog_utils_show_error (GTK_WINDOW (window),
+                                    "Cannot save file \"%s\": %s",
+                                    filename,
+                                    error->message);
         ret = FALSE;
+        g_error_free (error);
     }
 
     g_free (filename);
@@ -115,7 +131,6 @@ gp_window_open_file (GPWindow *window, const gchar *filename)
 {
     GPWindowPrivate *priv = gp_window_get_instance_private (window);
     GError *error = NULL;
-    GtkWidget *dialog = NULL;
 
     if (gp_window_close_document (window) == FALSE)
     {
@@ -126,16 +141,11 @@ gp_window_open_file (GPWindow *window, const gchar *filename)
 
     if (error != NULL)
     {
-        dialog = gtk_message_dialog_new (GTK_WINDOW (window),
-                                         GTK_DIALOG_DESTROY_WITH_PARENT,
-                                         GTK_MESSAGE_ERROR,
-                                         GTK_BUTTONS_CLOSE,
-                                         _("Error on opening file \"%s\": %s"),
-                                         filename,
-                                         error->message);
+        gp_dialog_utils_show_error (GTK_WINDOW (window),
+                                    _("Error on opening file \"%s\": %s"),
+                                    filename,
+                                    error->message);
         g_error_free (error);
-        gtk_dialog_run (GTK_DIALOG (dialog));
-        gtk_widget_destroy (dialog);
     }
     else
     {
@@ -147,30 +157,36 @@ gp_window_open_file (GPWindow *window, const gchar *filename)
 static void
 on_try_file_open (GtkWidget *widget, gpointer user_data)
 {
-    GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
-    gint res;
+    gchar *filename = NULL;
 
-    GtkWidget *dialog = gtk_file_chooser_dialog_new (_("Open File"),
-                                                     GTK_WINDOW (user_data),
-                                                     action,
-                                                     _("_Cancel"),
-                                                     GTK_RESPONSE_CANCEL,
-                                                     _("_Open"),
-                                                     GTK_RESPONSE_ACCEPT,
-                                                     NULL);
+    gint res = gp_dialog_utils_show_image_open_dialog (GTK_WINDOW (user_data), &filename);
 
-    res = gtk_dialog_run (GTK_DIALOG (dialog));
     if (res == GTK_RESPONSE_ACCEPT)
     {
-        GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
-        char *filename = gtk_file_chooser_get_filename (chooser);
-
         gp_window_open_file (GP_WINDOW (user_data), filename);
 
         g_free (filename);
     }
+}
 
-    gtk_widget_destroy (dialog);
+static void
+on_document_info_state_changed (GtkWidget *widget, gpointer user_data)
+{
+    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
+    gboolean modified = gp_document_info_get_is_modified (priv->document_info);
+    gchar *filename = gp_document_info_get_filename (priv->document_info);
+
+    gp_header_bar_set_filename (priv->header_bar, filename, modified);
+
+    g_free (filename);
+}
+
+static void
+on_image_editor_modified (GtkWidget *widget, gboolean modified, gpointer user_data)
+{
+    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
+
+    gp_document_info_set_is_modified (priv->document_info, modified);
 }
 
 static void
@@ -214,12 +230,16 @@ gp_window_init (GPWindow *window)
     g_signal_connect (priv->tool_box, "tool-changed", G_CALLBACK (on_tool_changed), window);
     g_signal_connect (priv->color_selector_box, "color-changed", G_CALLBACK (on_color_changed), window);
     g_signal_connect (priv->header_bar, "try-file-open", G_CALLBACK (on_try_file_open), window);
+    g_signal_connect (priv->image_editor, "editor-modified", G_CALLBACK (on_image_editor_modified), window);
+    g_signal_connect (priv->document_info, "state-changed", G_CALLBACK (on_document_info_state_changed), window);
 
     gp_image_editor_set_tool (priv->image_editor, gp_tool_box_get_active_tool (priv->tool_box));
 
     GdkRGBA color;
     gp_color_selector_box_get_color (priv->color_selector_box, &color);
     gp_image_editor_set_color (priv->image_editor, &color);
+
+    gp_document_info_set_filename (priv->document_info, NULL); // TODO hacky..
 }
 
 GtkWidget *

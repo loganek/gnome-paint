@@ -53,3 +53,5 @@
 
 /* VOID:STRING (./marshal.list:2) */
 
+/* VOID:BOOL (./marshal.list:3) */
+

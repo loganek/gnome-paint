@@ -12,6 +12,10 @@ G_BEGIN_DECLS
 /* VOID:STRING (./marshal.list:2) */
 #define gp_VOID__STRING	g_cclosure_marshal_VOID__STRING
 
+/* VOID:BOOL (./marshal.list:3) */
+#define gp_VOID__BOOLEAN	g_cclosure_marshal_VOID__BOOLEAN
+#define gp_VOID__BOOL	gp_VOID__BOOLEAN
+
 G_END_DECLS
 
 #endif /* __gp_MARSHAL_H__ */

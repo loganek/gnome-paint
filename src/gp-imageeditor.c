@@ -20,8 +20,17 @@
 
 #include "gp-imageeditor.h"
 #include "gp-drawingarea.h"
+#include "gp-marshal.h"
 
 #include <glib/gi18n.h>
+
+enum
+{
+    SIGNAL_EDITOR_MODIFIED,
+    LAST_SIGNAL
+};
+
+static guint gp_image_editor_signals[LAST_SIGNAL] = { 0 };
 
 #define RESIZE_MARGIN 15
 
@@ -182,6 +191,8 @@ on_canvas_button_release_event (GtkWidget      *widget,
     cairo_set_source_rgba (cr, priv->color.red, priv->color.green, priv->color.blue, priv->color.alpha);
     gp_tool_button_release (priv->tool, event, cr);
 
+    g_signal_emit (GP_IMAGE_EDITOR (user_data), gp_image_editor_signals[SIGNAL_EDITOR_MODIFIED], 0, TRUE);
+
     cairo_destroy (cr);
 
     return TRUE;
@@ -242,6 +253,16 @@ static void
 gp_image_editor_class_init (GPImageEditorClass *klass)
 {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+    gp_image_editor_signals[SIGNAL_EDITOR_MODIFIED] =
+            g_signal_new ("editor-modified",
+                          G_TYPE_FROM_CLASS (klass),
+                          0,
+                          0,
+                          NULL,
+                          NULL,
+                          gp_VOID__BOOL,
+                          G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
 
     gtk_widget_class_set_template_from_resource (widget_class,
                                                  "/org/gnome/Paint/gp-imageeditor.ui");
@@ -340,7 +361,7 @@ gp_image_editor_save_file (GPImageEditor *image_editor, const gchar *filename, G
         return;
     }
 
-    gboolean ret = gdk_pixbuf_save (pixbuf, filename, "png", error, NULL); // TODO possible formats can be loaded automatically (see documentation), support parameters
+    gdk_pixbuf_save (pixbuf, filename, "png", error, NULL); // TODO possible formats can be loaded automatically (see documentation), support parameters
 
     g_object_unref (G_OBJECT (pixbuf));
 }

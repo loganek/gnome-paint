@@ -36,9 +36,13 @@ void gp_document_info_set_save_file_request_callback (GPDocumentInfo *document_i
 
 void gp_document_info_set_filename (GPDocumentInfo *document_info, const gchar *filename);
 
-gboolean gp_document_info_is_modified (GPDocumentInfo *document_info);
-
 gchar* gp_document_info_get_filename (GPDocumentInfo *document_info);
+
+void gp_document_info_set_is_modified (GPDocumentInfo *document_info, gboolean modified);
+
+gboolean gp_document_info_get_is_modified (GPDocumentInfo *document_info);
+
+gboolean gp_document_info_has_user_defined_name (GPDocumentInfo *document_info);
 
 G_END_DECLS
 

@@ -18,6 +18,8 @@
 
 #include "gp-documentinfo.h"
 
+#include <glib/gi18n.h>
+
 enum
 {
     SIGNAL_STATE_CHANGED,
@@ -25,6 +27,8 @@ enum
 };
 
 static guint gp_document_info_signals[LAST_SIGNAL] = { 0 };
+
+static const gchar* default_document_name = NULL;
 
 struct _GPDocumentInfo
 {
@@ -35,6 +39,15 @@ struct _GPDocumentInfo
 };
 
 G_DEFINE_TYPE (GPDocumentInfo, gp_document_info, G_TYPE_OBJECT)
+
+static void
+gp_document_info_emit_state_changed (GPDocumentInfo *document_info, gboolean condition)
+{
+    if (condition == TRUE)
+    {
+        g_signal_emit (document_info, gp_document_info_signals[SIGNAL_STATE_CHANGED], 0, NULL);
+    }
+}
 
 static void
 gp_document_info_finalize (GObject *gobj)
@@ -67,6 +80,8 @@ gp_document_info_class_init (GPDocumentInfoClass *klass)
                           NULL,
                           NULL,
                           G_TYPE_NONE, 0);
+
+    default_document_name = _("Untitled Document");
 }
 
 GPDocumentInfo*
@@ -78,22 +93,43 @@ gp_document_info_create ()
 void
 gp_document_info_set_filename (GPDocumentInfo *document_info, const gchar *filename)
 {
+    gboolean emit_signal = g_strcmp0 (document_info->filename, filename) != 0 || filename == NULL;
+
     g_free (document_info->filename);
 
     document_info->filename = g_strdup (filename);
     document_info->modified = FALSE;
 
-    g_signal_emit (document_info, gp_document_info_signals[SIGNAL_STATE_CHANGED], 0, NULL);
+    gp_document_info_emit_state_changed (document_info, emit_signal);
 }
 
 gboolean
-gp_document_info_is_modified (GPDocumentInfo *document_info)
+gp_document_info_get_is_modified (GPDocumentInfo *document_info)
 {
     return document_info->modified;
+}
+
+void
+gp_document_info_set_is_modified (GPDocumentInfo *document_info, gboolean modified)
+{
+    gboolean emit_signal = document_info->modified != modified;
+
+    document_info->modified = modified;
+
+    gp_document_info_emit_state_changed (document_info, emit_signal);
+}
+
+gboolean
+gp_document_info_has_user_defined_name (GPDocumentInfo *document_info)
+{
+    return document_info->filename != NULL;
 }
 
 gchar*
 gp_document_info_get_filename (GPDocumentInfo *document_info)
 {
-    return g_strdup (document_info->filename);
+    const gchar *filename = gp_document_info_has_user_defined_name (document_info)
+            ? document_info->filename : default_document_name;
+
+    return g_strdup (filename);
 }

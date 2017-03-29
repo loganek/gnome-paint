@@ -34,12 +34,7 @@ struct _GPApplication
     GtkApplication parent_instance;
 };
 
-typedef struct
-{
-    int todo; // TODO
-} GPApplicationPrivate;
-
-G_DEFINE_TYPE_WITH_PRIVATE (GPApplication, gp_application, GTK_TYPE_APPLICATION)
+G_DEFINE_TYPE (GPApplication, gp_application, GTK_TYPE_APPLICATION)
 
 static void
 on_quit (GSimpleAction *action,

@@ -12,6 +12,7 @@ gnome_paint_SOURCES =         \
 	gp-colorselectorbox.c \
 	gp-dialogutils.c      \
 	gp-documentinfo.c     \
+	gp-documentmanager.c  \
 	gp-drawingarea.c      \
 	gp-headerbar.c        \
 	gp-imageeditor.c      \
@@ -25,7 +26,8 @@ gnome_paint_SOURCES =         \
 	gp-sizetoolproperty.c \
 	gp-tool.c             \
 	gp-toolbox.c          \
-	gp-window.c
+	gp-window.c           \
+	gp-window-commands.c
 
 gnome_paint_CFLAGS = $(GNOME_PAINT_CFLAGS) -DLOCALEDIR=\""$(localedir)"\"
 

@@ -18,47 +18,41 @@
 
 #include "config.h"
 
+#include "gp-documentmanager.h"
 #include "gp-window-commands.h"
 #include "gp-window.h"
+#include "gp-documentinfo.h"
+#include "gp-dialogutils.h"
 
-static gchar*
-request_new_filename (GPWindow *window, GPDocumentInfo *document_info)
+static void
+save_file_cmd (GPWindow *window, GPDocumentInfo *document, gboolean use_old_name)
 {
-    gchar *suggested_filename = gp_document_info_get_filename (document_info);
-    gchar *new_filename = NULL;
-
-    gp_dialog_utils_show_image_save_dialog (GTK_WINDOW (window), suggested_filename, &new_filename);
-
-    g_free (suggested_filename);
-
-    return new_filename;
-}
-
-
-void _gp_cmd_save_as (GSimpleAction *action,
-                      GVariant      *parameter,
-                      gpointer       user_data)
-{
-    GPWindow *window = GP_WINDOW (user_data);
     GPImageEditor *editor = gp_window_get_active_image_editor (window);
-    GPDocumentInfo *document_info = gp_image_editor_get_document_info (editor);
     gchar* filename = NULL;
     GError *error = NULL;
 
-    filename = request_new_filename (window, document_info);
+    gp_document_info_set_pixbuf (document, gp_image_editor_get_pixbuf (editor));
+
+    if (use_old_name == FALSE)
+    {
+        gchar *suggested_filename = gp_document_info_get_filename (document);
+        gp_dialog_utils_show_image_save_dialog (GTK_WINDOW (window), suggested_filename, &filename);
+        g_free (suggested_filename);
+    }
+    else
+    {
+        filename = gp_document_info_get_filename (document);
+        g_return_if_fail (filename != NULL);
+    }
 
     if (filename == NULL)
     {
-        return FALSE;
+        return;
     }
 
-    gp_image_editor_save_file (editor, filename, &error);
+    gp_document_info_save_file (document, filename, &error);
 
-    if (error == NULL)
-    {
-        gp_document_info_set_filename (document_info, filename);
-    }
-    else
+    if (error != NULL)
     {
         gp_dialog_utils_show_error (GTK_WINDOW (window),
                                     "Cannot save file \"%s\": %s",
@@ -68,6 +62,24 @@ void _gp_cmd_save_as (GSimpleAction *action,
     }
 
     g_free (filename);
+}
 
+void _gp_cmd_save_as (GSimpleAction *action,
+                      GVariant      *parameter,
+                      gpointer       user_data)
+{
+    GPDocumentManager *document_manager = gp_document_manager_get_default ();
+    GPDocumentInfo *active_document = gp_document_manager_get_active_document (document_manager);
 
+    save_file_cmd (GP_WINDOW (user_data), active_document, FALSE);
+}
+
+void _gp_cmd_save (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+    GPDocumentManager *document_manager = gp_document_manager_get_default ();
+    GPDocumentInfo *active_document = gp_document_manager_get_active_document (document_manager);
+
+    save_file_cmd (GP_WINDOW (user_data), active_document, gp_document_info_has_custom_name (active_document));
 }

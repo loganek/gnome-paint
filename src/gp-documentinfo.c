@@ -17,22 +17,17 @@
  */
 
 #include "gp-documentinfo.h"
+#include "gp-documentmanager.h"
 
 #include <glib/gi18n.h>
-
-enum
-{
-    SIGNAL_STATE_CHANGED,
-    LAST_SIGNAL
-};
-
-static guint gp_document_info_signals[LAST_SIGNAL] = { 0 };
 
 static const gchar* default_document_name = NULL;
 
 struct _GPDocumentInfo
 {
     GObject parent_instance;
+
+    GdkPixbuf *pixbuf;
 
     gboolean modified;
     gchar *filename;
@@ -41,12 +36,12 @@ struct _GPDocumentInfo
 G_DEFINE_TYPE (GPDocumentInfo, gp_document_info, G_TYPE_OBJECT)
 
 static void
-gp_document_info_emit_state_changed (GPDocumentInfo *document_info, gboolean condition)
+gp_document_info_set_filename (GPDocumentInfo *document, const gchar *filename)
 {
-    if (condition == TRUE)
-    {
-        g_signal_emit (document_info, gp_document_info_signals[SIGNAL_STATE_CHANGED], 0, NULL);
-    }
+    g_free (document->filename);
+    document->filename = g_strdup (filename);
+
+    gp_document_manager_notify_active_document_status_changed (gp_document_manager_get_default ());
 }
 
 static void
@@ -62,6 +57,7 @@ gp_document_info_init (GPDocumentInfo *self)
 {
     self->filename = NULL;
     self->modified = FALSE;
+    self->pixbuf = NULL;
 }
 
 static void
@@ -71,65 +67,40 @@ gp_document_info_class_init (GPDocumentInfoClass *klass)
 
     gobject_class->finalize = gp_document_info_finalize;
 
-    gp_document_info_signals[SIGNAL_STATE_CHANGED] =
-            g_signal_new ("state-changed",
-                          G_TYPE_FROM_CLASS (klass),
-                          0,
-                          0,
-                          NULL,
-                          NULL,
-                          NULL,
-                          G_TYPE_NONE, 0);
-
     default_document_name = _("Untitled Document");
-}
-
-GPDocumentInfo*
-gp_document_info_create ()
-{
-    return  GP_DOCUMENT_INFO (g_object_new (GP_TYPE_DOCUMENT_INFO, NULL));
-}
-
-void
-gp_document_info_set_filename (GPDocumentInfo *document_info, const gchar *filename)
-{
-    gboolean emit_signal = g_strcmp0 (document_info->filename, filename) != 0 || filename == NULL;
-
-    g_free (document_info->filename);
-
-    document_info->filename = g_strdup (filename);
-    document_info->modified = FALSE;
-
-    gp_document_info_emit_state_changed (document_info, emit_signal);
-}
-
-gboolean
-gp_document_info_get_is_modified (GPDocumentInfo *document_info)
-{
-    return document_info->modified;
-}
-
-void
-gp_document_info_set_is_modified (GPDocumentInfo *document_info, gboolean modified)
-{
-    gboolean emit_signal = document_info->modified != modified;
-
-    document_info->modified = modified;
-
-    gp_document_info_emit_state_changed (document_info, emit_signal);
-}
-
-gboolean
-gp_document_info_has_user_defined_name (GPDocumentInfo *document_info)
-{
-    return document_info->filename != NULL;
 }
 
 gchar*
 gp_document_info_get_filename (GPDocumentInfo *document_info)
 {
-    const gchar *filename = gp_document_info_has_user_defined_name (document_info)
+    const gchar *filename = gp_document_info_has_custom_name (document_info)
             ? document_info->filename : default_document_name;
 
     return g_strdup (filename);
+}
+
+void
+gp_document_info_set_pixbuf (GPDocumentInfo *document, GdkPixbuf *pixbuf)
+{
+    if (document->pixbuf != NULL)
+    {
+        g_object_unref (document->pixbuf);
+    }
+    document->pixbuf = pixbuf;
+}
+
+void
+gp_document_info_save_file (GPDocumentInfo *document, const gchar *filename, GError **error)
+{
+    g_return_if_fail (document->pixbuf != NULL);
+
+    gdk_pixbuf_save (document->pixbuf, filename, "png", error, NULL); // TODO possible formats can be loaded automatically (see documentation), support parameters
+
+    gp_document_info_set_filename (document, filename);
+}
+
+gboolean
+gp_document_info_has_custom_name (GPDocumentInfo *document)
+{
+    return document->filename != NULL;
 }

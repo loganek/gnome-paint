@@ -19,7 +19,7 @@
 #ifndef GP_DOCUMENT_INFO_H_
 #define GP_DOCUMENT_INFO_H_
 
-#include <glib-object.h>
+#include "gp-tool.h"
 
 G_BEGIN_DECLS
 
@@ -28,21 +28,13 @@ G_DECLARE_FINAL_TYPE (GPDocumentInfo, gp_document_info, GP, DOCUMENT_INFO, GObje
 
 typedef gboolean (*save_file_request_callback) (gpointer user_data);
 
-GPDocumentInfo* gp_document_info_create ();
-
-void gp_document_info_set_save_file_request_callback (GPDocumentInfo *document_info,
-                                                   save_file_request_callback callback,
-                                                   gpointer user_data);
-
-void gp_document_info_set_filename (GPDocumentInfo *document_info, const gchar *filename);
-
 gchar* gp_document_info_get_filename (GPDocumentInfo *document_info);
 
-void gp_document_info_set_is_modified (GPDocumentInfo *document_info, gboolean modified);
+void gp_document_info_set_pixbuf (GPDocumentInfo *document, GdkPixbuf *pixbuf);
 
-gboolean gp_document_info_get_is_modified (GPDocumentInfo *document_info);
+void gp_document_info_save_file (GPDocumentInfo *document, const gchar *filename, GError **error);
 
-gboolean gp_document_info_has_user_defined_name (GPDocumentInfo *document_info);
+gboolean gp_document_info_has_custom_name (GPDocumentInfo *document);
 
 G_END_DECLS
 

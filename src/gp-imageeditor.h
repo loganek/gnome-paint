@@ -20,7 +20,6 @@
 #define GP_IMAGE_EDITOR_H_
 
 #include "gp-tool.h"
-#include "gp-documentinfo.h"
 
 #include <gtk/gtk.h>
 
@@ -35,13 +34,10 @@ void gp_image_editor_set_tool (GPImageEditor *self, GPTool *tool);
 
 void gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color);
 
-void gp_image_editor_open_file (GPImageEditor *image_editor, const gchar *filename, GError **error);
-
-void gp_image_editor_save_file (GPImageEditor *image_editor, const gchar *filename, GError **error);
-
 gboolean gp_image_editor_is_selected (GPImageEditor *image_editor);
 
-GPDocumentInfo *gp_image_editor_get_document_info (GPImageEditor *image_editor);
+void gp_image_editor_set_pixbuf (GPImageEditor *image_editor, GdkPixbuf *pixbuf);
+GdkPixbuf * gp_image_editor_get_pixbuf (GPImageEditor *image_editor);
 
 G_END_DECLS
 

@@ -50,7 +50,6 @@ typedef struct
     GtkEventBox *resizer;
     GPDrawingArea *canvas;
     GtkAlignment *alignment;
-    GPDocumentInfo *document_info;
 } GPImageEditorPrivate;
 
 #define GP_IMAGE_EDITOR_PRIV(image_editor) ((GPImageEditorPrivate *) gp_image_editor_get_instance_private (image_editor))
@@ -185,8 +184,6 @@ on_canvas_button_release_event (GtkWidget      *widget,
     cairo_set_source_rgba (cr, priv->color.red, priv->color.green, priv->color.blue, priv->color.alpha);
     gp_tool_button_release (priv->tool, event, cr);
 
-    gp_document_info_set_is_modified (priv->document_info, TRUE);
-
     cairo_destroy (cr);
 
     return TRUE;
@@ -226,7 +223,6 @@ gp_image_editor_init (GPImageEditor *self)
 
     gtk_widget_init_template (GTK_WIDGET (self));
 
-    priv->document_info = gp_document_info_create (); // TODO remove on finalize
     priv->tool = NULL;
 
     g_signal_connect (priv->canvas,
@@ -309,55 +305,6 @@ gp_image_editor_new (void)
     return g_object_new (GP_TYPE_IMAGE_EDITOR, NULL);
 }
 
-void
-gp_image_editor_open_file (GPImageEditor *image_editor, const gchar *filename, GError **error)
-{
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
-    GdkPixbuf *pixbuf = NULL;
-    guint bottom_align, right_align;
-
-    g_assert (error != NULL);
-
-    pixbuf = gdk_pixbuf_new_from_file (filename, error);
-
-    if (*error != NULL)
-    {
-        return;
-    }
-
-    gtk_alignment_get_padding (priv->alignment, NULL, &bottom_align, NULL, &right_align);
-
-    gtk_widget_set_size_request (GTK_WIDGET (priv->resizer),
-                                 gdk_pixbuf_get_width (pixbuf) + right_align,
-                                 gdk_pixbuf_get_height (pixbuf) + bottom_align);
-
-    gp_drawing_area_load_from_pixbuf (priv->canvas, pixbuf);
-
-    g_object_unref (G_OBJECT( pixbuf));
-}
-
-void
-gp_image_editor_save_file (GPImageEditor *image_editor, const gchar *filename, GError **error)
-{
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
-    cairo_surface_t *surface = gp_drawing_area_get_surface (priv->canvas);
-
-    GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface,
-                                 0, 0,
-                                 cairo_image_surface_get_width (surface),
-                                 cairo_image_surface_get_height (surface));
-
-    if (pixbuf == NULL)
-    {
-        *error = g_error_new (GDK_PIXBUF_ERROR, GDK_PIXBUF_ERROR_FAILED, _("cannot convert cairo surface to Gdk.Pixbuf"));
-        return;
-    }
-
-    gdk_pixbuf_save (pixbuf, filename, "png", error, NULL); // TODO possible formats can be loaded automatically (see documentation), support parameters
-
-    g_object_unref (G_OBJECT (pixbuf));
-}
-
 gboolean
 gp_image_editor_is_selected (GPImageEditor *image_editor)
 {
@@ -380,10 +327,36 @@ gp_image_editor_is_selected (GPImageEditor *image_editor)
     return FALSE;
 }
 
-GPDocumentInfo *
-gp_image_editor_get_document_info (GPImageEditor *image_editor)
+void
+gp_image_editor_set_pixbuf (GPImageEditor *image_editor, GdkPixbuf *pixbuf)
 {
-    GPImageEditorPrivate *priv = gp_image_editor_get_instance_private (image_editor);
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (image_editor));
+    guint bottom_align, right_align;
 
-    return priv->document_info;
+    gtk_alignment_get_padding (priv->alignment, NULL, &bottom_align, NULL, &right_align);
+
+    gtk_widget_set_size_request (GTK_WIDGET (priv->resizer),
+                                 gdk_pixbuf_get_width (pixbuf) + right_align,
+                                 gdk_pixbuf_get_height (pixbuf) + bottom_align);
+
+    gp_drawing_area_load_from_pixbuf (priv->canvas, pixbuf);
+
+    g_object_unref (G_OBJECT (pixbuf));
+
+}
+
+GdkPixbuf *
+gp_image_editor_get_pixbuf (GPImageEditor *image_editor)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
+    cairo_surface_t *surface = gp_drawing_area_get_surface (priv->canvas);
+
+    GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface,
+                                 0, 0,
+                                 cairo_image_surface_get_width (surface),
+                                 cairo_image_surface_get_height (surface));
+
+    g_return_val_if_fail (pixbuf != NULL, NULL);
+
+    return pixbuf;
 }

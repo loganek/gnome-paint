@@ -21,25 +21,17 @@
             <property name="label_xalign">0</property>
             <property name="shadow_type">none</property>
             <child>
-              <object class="GtkAlignment" id="alignment">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="bottom_padding">10</property>
-                <property name="right_padding">10</property>
-                <child>
-                  <object class="GPDrawingArea" id="canvas">
-		    <property name="visible">True</property>
-		    <signal name="button-press-event" handler="on_canvas_button_press_event"/>
-		    <signal name="button-release-event" handler="on_canvas_button_release_event"/>
-		    <signal name="motion-notify-event" handler="on_canvas_motion_notify_event"/>
-		  </object>
-                </child>
-              </object>
-            </child>
-            <child type="label_item">
-              <placeholder/>
+              <object class="GPDrawingArea" id="canvas">
+		<property name="visible">True</property>
+		<signal name="button-press-event" handler="on_canvas_button_press_event"/>
+		<signal name="button-release-event" handler="on_canvas_button_release_event"/>
+		<signal name="motion-notify-event" handler="on_canvas_motion_notify_event"/>
+	      </object>
             </child>
           </object>
+        </child>
+        <child type="label_item">
+          <placeholder/>
         </child>
       </object>
     </child>

@@ -49,7 +49,6 @@ typedef struct
     GPResizeMode resize_mode;
     GtkEventBox *resizer;
     GPDrawingArea *canvas;
-    GtkAlignment *alignment;
 } GPImageEditorPrivate;
 
 #define GP_IMAGE_EDITOR_PRIV(image_editor) ((GPImageEditorPrivate *) gp_image_editor_get_instance_private (image_editor))
@@ -61,11 +60,11 @@ calculate_resize_mode (GtkWidget *widget, gint pos_x, gint pos_y)
 {
     GPResizeMode resize_mode = GP_RESIZE_MODE_NONE;
 
-    if (gtk_widget_get_allocated_width (widget) - RESIZE_MARGIN < pos_x)
+    if (gtk_widget_get_allocated_width (widget) - RESIZE_MARGIN-1 < pos_x)
     {
         resize_mode |= GP_RESIZE_MODE_X;
     }
-    if (gtk_widget_get_allocated_height (widget) - RESIZE_MARGIN < pos_y)
+    if (gtk_widget_get_allocated_height (widget) - RESIZE_MARGIN-1 < pos_y)
     {
         resize_mode |= GP_RESIZE_MODE_Y;
     }
@@ -225,6 +224,9 @@ gp_image_editor_init (GPImageEditor *self)
 
     priv->tool = NULL;
 
+    gtk_widget_set_margin_bottom (GTK_WIDGET (priv->canvas), RESIZE_MARGIN);
+    gtk_widget_set_margin_end (GTK_WIDGET (priv->canvas), RESIZE_MARGIN);
+
     g_signal_connect (priv->canvas,
                       "draw-overlay",
                       G_CALLBACK (on_canvas_draw_overlay),
@@ -238,6 +240,8 @@ gp_image_editor_init (GPImageEditor *self)
                            GDK_BUTTON_PRESS_MASK
                            | GDK_BUTTON_RELEASE_MASK
                            | GDK_POINTER_MOTION_MASK);
+
+
 }
 
 static void
@@ -251,8 +255,6 @@ gp_image_editor_class_init (GPImageEditorClass *klass)
                                                   resizer);
     gtk_widget_class_bind_template_child_private (widget_class, GPImageEditor,
                                                   canvas);
-    gtk_widget_class_bind_template_child_private (widget_class, GPImageEditor,
-                                                  alignment);
     gtk_widget_class_bind_template_callback (widget_class,
                                              on_resizer_button_press_event);
     gtk_widget_class_bind_template_callback (widget_class,
@@ -331,13 +333,10 @@ void
 gp_image_editor_set_pixbuf (GPImageEditor *image_editor, GdkPixbuf *pixbuf)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (image_editor));
-    guint bottom_align, right_align;
-
-    gtk_alignment_get_padding (priv->alignment, NULL, &bottom_align, NULL, &right_align);
 
     gtk_widget_set_size_request (GTK_WIDGET (priv->resizer),
-                                 gdk_pixbuf_get_width (pixbuf) + right_align,
-                                 gdk_pixbuf_get_height (pixbuf) + bottom_align);
+                                 gdk_pixbuf_get_width (pixbuf),
+                                 gdk_pixbuf_get_height (pixbuf));
 
     gp_drawing_area_load_from_pixbuf (priv->canvas, pixbuf);
 

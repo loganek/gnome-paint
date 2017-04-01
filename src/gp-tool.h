@@ -39,6 +39,9 @@ struct _GPToolClass
     void (*button_release) (GPTool *tool,
                             GdkEventButton *event,
                             cairo_t *cairo_context);
+    void (*activate) (GPTool *tool);
+    void (*deactivate) (GPTool *tool);
+
     GtkWidget* (*create_icon) (GPTool *tool);
     const GPtrArray* (*get_properties) (GPTool *tool);
 };
@@ -52,6 +55,10 @@ void gp_tool_button_press (GPTool *tool, GdkEventButton *event);
 void gp_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_t *cairo_context);
 
 void gp_tool_move (GPTool *tool, GdkEventMotion *event);
+
+void gp_tool_activate (GPTool *tool);
+
+void gp_tool_deactivate (GPTool *tool);
 
 void gp_tool_apply_properties (GPTool *tool, cairo_t *cairo_context);
 

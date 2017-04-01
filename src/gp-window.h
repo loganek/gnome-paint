@@ -20,6 +20,7 @@
 #define GP_WINDOW_H_
 
 #include "gp-application.h"
+#include "gp-imageeditor.h"
 
 G_BEGIN_DECLS
 
@@ -28,6 +29,7 @@ G_DECLARE_FINAL_TYPE (GPWindow, gp_window, GP, WINDOW, GtkApplicationWindow)
 
 GtkWidget * gp_window_new (GtkApplication *application);
 
+GPImageEditor * gp_window_get_active_image_editor (GPWindow *window);
 
 G_END_DECLS
 

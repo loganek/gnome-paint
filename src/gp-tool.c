@@ -59,6 +59,22 @@ gp_tool_default_move (GPTool *tool, GdkEventMotion *event)
 }
 
 static void
+gp_tool_default_activate (GPTool *tool)
+{
+}
+
+static void
+gp_tool_default_deactivate (GPTool *tool)
+{
+}
+
+static const GPtrArray*
+gp_tool_default_get_properties (GPTool *tool)
+{
+    return NULL;
+}
+
+static void
 gp_tool_class_init (GPToolClass *klass)
 {
     klass->create_icon = gp_tool_default_create_icon;
@@ -66,6 +82,9 @@ gp_tool_class_init (GPToolClass *klass)
     klass->button_press = gp_tool_default_button_press;
     klass->button_release = gp_tool_default_button_release;
     klass->move = gp_tool_default_move;
+    klass->activate = gp_tool_default_activate;
+    klass->deactivate = gp_tool_default_deactivate;
+    klass->get_properties = gp_tool_default_get_properties;
 }
 
 static void
@@ -104,6 +123,18 @@ void
 gp_tool_move (GPTool *tool, GdkEventMotion *event)
 {
     GP_TOOL_GET_CLASS (tool)->move (tool, event);
+}
+
+void
+gp_tool_activate (GPTool *tool)
+{
+    GP_TOOL_GET_CLASS (tool)->activate (tool);
+}
+
+void
+gp_tool_deactivate (GPTool *tool)
+{
+    GP_TOOL_GET_CLASS (tool)->deactivate (tool);
 }
 
 void

@@ -19,6 +19,7 @@
 #include "gp-toolbox.h"
 #include "gp-linetool.h" // TODO REMOVE
 #include "gp-rectangletool.h" // TODO REMOVE
+#include "gp-rectangleselectiontool.h" // TODO REMOVE
 #include <glib/gi18n.h>
 
 /* Signals */
@@ -133,6 +134,7 @@ gp_tool_box_init (GPToolBox *tool_box)
 
     gp_tool_box_add_tool (tool_box, gp_line_tool_create ());
     gp_tool_box_add_tool (tool_box, gp_rectangle_tool_create ());
+    gp_tool_box_add_tool (tool_box, gp_rectangle_selection_tool_create ());
 }
 
 GPTool *

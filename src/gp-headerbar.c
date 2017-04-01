@@ -19,6 +19,7 @@
 #include "config.h"
 
 #include "gp-headerbar.h"
+#include "gp-application.h"
 
 #include <string.h>
 
@@ -38,6 +39,7 @@ struct _GPHeaderBar
 typedef struct
 {
     GtkButton *open_button;
+    GtkMenuButton *gear_button;
 } GPHeaderBarPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPHeaderBar, gp_header_bar, GTK_TYPE_HEADER_BAR)
@@ -51,7 +53,13 @@ on_open_button_clicked (GtkWidget *widget, gpointer user_data)
 static void
 gp_header_bar_init (GPHeaderBar *header_bar)
 {
+    GPHeaderBarPrivate *priv = gp_header_bar_get_instance_private (header_bar);
+
     gtk_widget_init_template (GTK_WIDGET (header_bar));
+
+    gtk_menu_button_set_menu_model (
+                priv->gear_button,
+                gp_application_get_hamburger_menu_model (GP_APPLICATION (g_application_get_default ())));
 }
 
 static void
@@ -63,6 +71,8 @@ gp_header_bar_class_init (GPHeaderBarClass *klass)
                                                  "/org/gnome/Paint/gp-headerbar.ui");
     gtk_widget_class_bind_template_child_private (widget_class, GPHeaderBar,
                                                   open_button);
+    gtk_widget_class_bind_template_child_private (widget_class, GPHeaderBar,
+                                                  gear_button);
     gtk_widget_class_bind_template_callback (widget_class,
                                              on_open_button_clicked);
 

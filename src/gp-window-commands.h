@@ -1,4 +1,4 @@
-/* gp-application.h
+/* gp-window-commands.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,20 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_APPLICATION_H_
-#define GP_APPLICATION_H_
+#ifndef GP_WINDOW_COMMANDS_H_
+#define GP_WINDOW_COMMANDS_H_
 
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_APPLICATION (gp_application_get_type ())
-G_DECLARE_FINAL_TYPE (GPApplication, gp_application, GP, APPLICATION, GtkApplication)
+void _gp_cmd_save_as (GSimpleAction *action,
+                      GVariant      *parameter,
+                      gpointer       user_data);
 
-GtkApplication * gp_application_new (void);
+void _gp_cmd_save (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data);
 
-GMenuModel* gp_application_get_hamburger_menu_model (GPApplication *application);
+void _gp_cmd_copy (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data);
 
 G_END_DECLS
 
-#endif /* GP_APPLICATION_H_ */
+#endif /* GP_WINDOW_COMMANDS_H_ */

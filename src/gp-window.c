@@ -19,11 +19,11 @@
 #include "gp-window.h"
 
 #include "gp-toolbox.h"
-#include "gp-imageeditor.h"
 #include "gp-colorselectorbox.h"
 #include "gp-headerbar.h"
 #include "gp-documentinfo.h"
 #include "gp-dialogutils.h"
+#include "gp-window-commands.h"
 
 #include <glib/gi18n.h>
 
@@ -40,10 +40,13 @@ typedef struct
     GPToolBox *tool_box;
     GPColorSelectorBox *color_selector_box;
     GPHeaderBar *header_bar;
-    GPDocumentInfo *document_info;
 } GPWindowPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPWindow, gp_window, GTK_TYPE_APPLICATION_WINDOW)
+
+static GActionEntry win_entries[] = {
+    { "save-as", _gp_cmd_save_as },
+};
 
 static void
 on_tool_changed (GtkWidget *widget, gpointer user_data)
@@ -63,79 +66,11 @@ on_color_changed (GtkWidget *widget, gpointer user_data)
     gp_image_editor_set_color (priv->image_editor, &color);
 }
 
-static gchar*
-gp_window_request_new_filename (GPWindow *window)
-{
-    GPWindowPrivate *priv = gp_window_get_instance_private (window);
-    gchar *suggested_filename = gp_document_info_get_filename (priv->document_info);
-    gchar *new_filename = NULL;
-
-    gp_dialog_utils_show_image_save_dialog (GTK_WINDOW (window), suggested_filename, &new_filename);
-
-    g_free (suggested_filename);
-
-    return new_filename;
-}
-
-static gboolean
-gp_window_close_document (GPWindow *window)
-{
-    GPWindowPrivate *priv = gp_window_get_instance_private (window);
-    GError *error = NULL;
-    gboolean ret = TRUE;
-    gchar *filename = NULL;
-
-    if (gp_document_info_get_is_modified (priv->document_info) == FALSE)
-    {
-        return TRUE;
-    }
-
-    if (gp_document_info_has_user_defined_name (priv->document_info) == FALSE)
-    {
-        filename = gp_window_request_new_filename (window);
-
-        if (filename == NULL)
-        {
-            return FALSE;
-        }
-    }
-    else
-    {
-        filename = gp_document_info_get_filename (priv->document_info);
-    }
-
-    gp_image_editor_save_file (priv->image_editor, filename, &error);
-
-    if (error == NULL)
-    {
-        gp_document_info_set_filename (priv->document_info, filename);
-        ret = TRUE;
-    }
-    else
-    {
-        gp_dialog_utils_show_error (GTK_WINDOW (window),
-                                    "Cannot save file \"%s\": %s",
-                                    filename,
-                                    error->message);
-        ret = FALSE;
-        g_error_free (error);
-    }
-
-    g_free (filename);
-
-    return ret;
-}
-
 static void
 gp_window_open_file (GPWindow *window, const gchar *filename)
 {
     GPWindowPrivate *priv = gp_window_get_instance_private (window);
     GError *error = NULL;
-
-    if (gp_window_close_document (window) == FALSE)
-    {
-        return;
-    }
 
     gp_image_editor_open_file (priv->image_editor, filename, &error);
 
@@ -149,7 +84,7 @@ gp_window_open_file (GPWindow *window, const gchar *filename)
     }
     else
     {
-        gp_document_info_set_filename (priv->document_info, filename);
+        //gp_document_info_set_filename (priv->document_info, filename);
         gp_header_bar_set_filename (priv->header_bar, filename, FALSE);
     }
 }
@@ -170,31 +105,15 @@ on_try_file_open (GtkWidget *widget, gpointer user_data)
 }
 
 static void
-on_document_info_state_changed (GtkWidget *widget, gpointer user_data)
+on_document_info_state_changed (GPDocumentInfo *document_info, gpointer user_data)
 {
     GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
-    gboolean modified = gp_document_info_get_is_modified (priv->document_info);
-    gchar *filename = gp_document_info_get_filename (priv->document_info);
+    gboolean modified = gp_document_info_get_is_modified (document_info);
+    gchar *filename = gp_document_info_get_filename (document_info);
 
     gp_header_bar_set_filename (priv->header_bar, filename, modified);
 
     g_free (filename);
-}
-
-static void
-on_image_editor_modified (GtkWidget *widget, gboolean modified, gpointer user_data)
-{
-    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
-
-    gp_document_info_set_is_modified (priv->document_info, modified);
-}
-
-static void
-gp_window_finalize (GObject *gobj)
-{
-    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (gobj));
-
-    g_object_unref (G_OBJECT (priv->document_info));
 }
 
 static void
@@ -213,8 +132,6 @@ gp_window_class_init (GPWindowClass *klass)
                                                   color_selector_box);
     gtk_widget_class_bind_template_child_private (widget_class, GPWindow,
                                                   header_bar);
-
-    gobject_class->finalize = gp_window_finalize;
 }
 
 static void
@@ -225,13 +142,12 @@ gp_window_init (GPWindow *window)
 
     priv = gp_window_get_instance_private (window);
 
-    priv->document_info = gp_document_info_create ();
+    GPDocumentInfo *document_info = gp_image_editor_get_document_info (priv->image_editor);
 
     g_signal_connect (priv->tool_box, "tool-changed", G_CALLBACK (on_tool_changed), window);
     g_signal_connect (priv->color_selector_box, "color-changed", G_CALLBACK (on_color_changed), window);
     g_signal_connect (priv->header_bar, "try-file-open", G_CALLBACK (on_try_file_open), window);
-    g_signal_connect (priv->image_editor, "editor-modified", G_CALLBACK (on_image_editor_modified), window);
-    g_signal_connect (priv->document_info, "state-changed", G_CALLBACK (on_document_info_state_changed), window);
+    g_signal_connect (document_info, "state-changed", G_CALLBACK (on_document_info_state_changed), window);
 
     gp_image_editor_set_tool (priv->image_editor, gp_tool_box_get_active_tool (priv->tool_box));
 
@@ -239,7 +155,13 @@ gp_window_init (GPWindow *window)
     gp_color_selector_box_get_color (priv->color_selector_box, &color);
     gp_image_editor_set_color (priv->image_editor, &color);
 
-    gp_document_info_set_filename (priv->document_info, NULL); // TODO hacky..
+    gp_document_info_set_filename (document_info, NULL); // TODO hacky..
+
+    g_action_map_add_action_entries (G_ACTION_MAP (window),
+                                     win_entries,
+                                     G_N_ELEMENTS (win_entries),
+                                     window);
+
 }
 
 GtkWidget *
@@ -250,3 +172,10 @@ gp_window_new (GtkApplication *application)
     return g_object_new (GP_TYPE_WINDOW, "application", application, NULL);
 }
 
+GPImageEditor *
+gp_window_get_active_image_editor (GPWindow *window)
+{
+    GPWindowPrivate *priv = gp_window_get_instance_private (window);
+
+    return priv->image_editor;
+}

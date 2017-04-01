@@ -20,17 +20,10 @@
 
 #include "gp-imageeditor.h"
 #include "gp-drawingarea.h"
+#include "gp-selectiontool.h"
 #include "gp-marshal.h"
 
 #include <glib/gi18n.h>
-
-enum
-{
-    SIGNAL_EDITOR_MODIFIED,
-    LAST_SIGNAL
-};
-
-static guint gp_image_editor_signals[LAST_SIGNAL] = { 0 };
 
 #define RESIZE_MARGIN 15
 
@@ -57,6 +50,7 @@ typedef struct
     GtkEventBox *resizer;
     GPDrawingArea *canvas;
     GtkAlignment *alignment;
+    GPDocumentInfo *document_info;
 } GPImageEditorPrivate;
 
 #define GP_IMAGE_EDITOR_PRIV(image_editor) ((GPImageEditorPrivate *) gp_image_editor_get_instance_private (image_editor))
@@ -191,7 +185,7 @@ on_canvas_button_release_event (GtkWidget      *widget,
     cairo_set_source_rgba (cr, priv->color.red, priv->color.green, priv->color.blue, priv->color.alpha);
     gp_tool_button_release (priv->tool, event, cr);
 
-    g_signal_emit (GP_IMAGE_EDITOR (user_data), gp_image_editor_signals[SIGNAL_EDITOR_MODIFIED], 0, TRUE);
+    gp_document_info_set_is_modified (priv->document_info, TRUE);
 
     cairo_destroy (cr);
 
@@ -232,6 +226,7 @@ gp_image_editor_init (GPImageEditor *self)
 
     gtk_widget_init_template (GTK_WIDGET (self));
 
+    priv->document_info = gp_document_info_create (); // TODO remove on finalize
     priv->tool = NULL;
 
     g_signal_connect (priv->canvas,
@@ -253,16 +248,6 @@ static void
 gp_image_editor_class_init (GPImageEditorClass *klass)
 {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-
-    gp_image_editor_signals[SIGNAL_EDITOR_MODIFIED] =
-            g_signal_new ("editor-modified",
-                          G_TYPE_FROM_CLASS (klass),
-                          0,
-                          0,
-                          NULL,
-                          NULL,
-                          gp_VOID__BOOL,
-                          G_TYPE_NONE, 1, G_TYPE_BOOLEAN);
 
     gtk_widget_class_set_template_from_resource (widget_class,
                                                  "/org/gnome/Paint/gp-imageeditor.ui");
@@ -297,6 +282,13 @@ gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool)
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
 
     gp_tool_set_canvas_widget (tool, GTK_WIDGET (priv->canvas));
+
+    if (priv->tool != NULL)
+    {
+        gp_tool_deactivate (priv->tool);
+    }
+    gp_tool_activate (tool);
+
     priv->tool = tool;
 
     // TODO set cursor on show widget
@@ -364,4 +356,34 @@ gp_image_editor_save_file (GPImageEditor *image_editor, const gchar *filename, G
     gdk_pixbuf_save (pixbuf, filename, "png", error, NULL); // TODO possible formats can be loaded automatically (see documentation), support parameters
 
     g_object_unref (G_OBJECT (pixbuf));
+}
+
+gboolean
+gp_image_editor_is_selected (GPImageEditor *image_editor)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (image_editor));
+    GdkPixbuf *pixbuf = NULL;
+
+    if (GP_IS_SELECTION_TOOL (priv->tool) == FALSE)
+    {
+        return FALSE;
+    }
+
+    pixbuf = gp_selection_tool_get_selection (GP_SELECTION_TOOL (priv->tool));
+
+    if (pixbuf != NULL)
+    {
+        g_object_unref (pixbuf);
+        return TRUE;
+    }
+
+    return FALSE;
+}
+
+GPDocumentInfo *
+gp_image_editor_get_document_info (GPImageEditor *image_editor)
+{
+    GPImageEditorPrivate *priv = gp_image_editor_get_instance_private (image_editor);
+
+    return priv->document_info;
 }

@@ -1,4 +1,4 @@
-/* gp-application.h
+/* gp-rectangleselectiontool.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,20 +16,18 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_APPLICATION_H_
-#define GP_APPLICATION_H_
+#ifndef GP_RECTANGLE_SELECTION_TOOL_H_
+#define GP_RECTANGLE_SELECTION_TOOL_H_
 
-#include <gtk/gtk.h>
+#include "gp-tool.h"
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_APPLICATION (gp_application_get_type ())
-G_DECLARE_FINAL_TYPE (GPApplication, gp_application, GP, APPLICATION, GtkApplication)
+#define GP_TYPE_RECTANGLE_SELECTION_TOOL (gp_rectangle_selection_tool_get_type ())
+G_DECLARE_FINAL_TYPE (GPRectangleSelectionTool, gp_rectangle_selection_tool, GP, RECTANGLE_SELECTION_TOOL, GPTool)
 
-GtkApplication * gp_application_new (void);
-
-GMenuModel* gp_application_get_hamburger_menu_model (GPApplication *application);
+GPTool* gp_rectangle_selection_tool_create ();
 
 G_END_DECLS
 
-#endif /* GP_APPLICATION_H_ */
+#endif /* GP_RECTANGLE_SELECTION_TOOL_H_ */

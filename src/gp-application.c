@@ -32,6 +32,8 @@ struct _GPApplication
 {
     /*< private >*/
     GtkApplication parent_instance;
+
+    GMenuModel *hamburger_menu;
 };
 
 G_DEFINE_TYPE (GPApplication, gp_application, GTK_TYPE_APPLICATION)
@@ -87,7 +89,7 @@ on_about (GSimpleAction *action,
     GtkApplication *application;
     GtkWindow *parent;
     static const gchar* artists[] = {
-	// TODO
+        // TODO
         NULL
     };
     static const gchar* authors[] = {
@@ -150,6 +152,9 @@ gp_application_startup (GApplication *application)
     g_set_application_name (_(PACKAGE_NAME));
     gtk_window_set_default_icon_name (PACKAGE_TARNAME);
 
+    GP_APPLICATION (application)->hamburger_menu =
+            G_MENU_MODEL (g_object_ref_sink (gtk_application_get_menu_by_id (GTK_APPLICATION (application), "hamburger-menu")));
+
     /* Must register custom types before using them from GtkBuilder. */
     gp_window_get_type ();
     gp_drawing_area_get_type ();
@@ -157,6 +162,7 @@ gp_application_startup (GApplication *application)
     gp_tool_box_get_type ();
     gp_image_editor_get_type ();
     gp_header_bar_get_type ();
+
 }
 
 
@@ -193,3 +199,8 @@ gp_application_new (void)
                          "org.gnome.Paint", NULL);
 }
 
+GMenuModel*
+gp_application_get_hamburger_menu_model (GPApplication *application)
+{
+    return application->hamburger_menu;
+}

@@ -1,4 +1,4 @@
-/* gp-application.h
+/* gp-selectiontool.c
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,20 +16,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_APPLICATION_H_
-#define GP_APPLICATION_H_
+#include "gp-selectiontool.h"
 
-#include <gtk/gtk.h>
+G_DEFINE_INTERFACE (GPSelectionTool, gp_selection_tool, GP_TYPE_TOOL)
 
-G_BEGIN_DECLS
+static void
+gp_selection_tool_default_init (GPSelectionToolInterface *iface)
+{
+}
 
-#define GP_TYPE_APPLICATION (gp_application_get_type ())
-G_DECLARE_FINAL_TYPE (GPApplication, gp_application, GP, APPLICATION, GtkApplication)
+GdkPixbuf*
+gp_selection_tool_get_selection(GPSelectionTool *self)
+{
+    GPSelectionToolInterface *iface;
 
-GtkApplication * gp_application_new (void);
+    g_return_val_if_fail (GP_IS_SELECTION_TOOL (self), NULL);
 
-GMenuModel* gp_application_get_hamburger_menu_model (GPApplication *application);
+    iface = GP_SELECTION_TOOL_GET_IFACE (self);
+    g_return_if_fail (iface->get_selection != NULL);
 
-G_END_DECLS
+    return iface->get_selection (self);
+}
 
-#endif /* GP_APPLICATION_H_ */

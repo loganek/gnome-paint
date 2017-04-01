@@ -89,7 +89,6 @@ on_about (GSimpleAction *action,
     GtkApplication *application;
     GtkWindow *parent;
     static const gchar* artists[] = {
-        // TODO
         NULL
     };
     static const gchar* authors[] = {

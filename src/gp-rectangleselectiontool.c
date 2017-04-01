@@ -84,11 +84,20 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
     cairo_surface_t *surface = cairo_get_target (cairo_context);
     GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
 
-    selection_tool->selection = gdk_pixbuf_get_from_surface (surface,
-                                                             selection_tool->start_point.x,
-                                                             selection_tool->start_point.y,
-                                                             selection_tool->current_point.x,
-                                                             selection_tool->current_point.y);
+    if (selection_tool->selection != NULL)
+    {
+        g_clear_object (&selection_tool->selection);
+    }
+
+    if (selection_tool->start_point.x != selection_tool->current_point.x
+            && selection_tool->start_point.y != selection_tool->current_point.y)
+    {
+        selection_tool->selection = gdk_pixbuf_get_from_surface (surface,
+                                                                 selection_tool->start_point.x,
+                                                                 selection_tool->start_point.y,
+                                                                 selection_tool->current_point.x - selection_tool->start_point.x,
+                                                                 selection_tool->current_point.y - selection_tool->start_point.y);
+    }
 
     selection_tool->grabbed = FALSE;
 }
@@ -116,7 +125,7 @@ gp_rectangle_selection_tool_deactivate (GPTool *tool)
 
     if (selection_tool->selection != NULL)
     {
-        g_object_unref (selection_tool->selection);
+        g_clear_object (&selection_tool->selection);
     }
 
     gtk_widget_queue_draw (gp_tool_get_canvas_widget (tool));
@@ -125,7 +134,14 @@ gp_rectangle_selection_tool_deactivate (GPTool *tool)
 static GdkPixbuf*
 gp_rectangle_selection_tool_get_selection(GPSelectionTool *self)
 {
-    return g_object_ref (GP_RECTANGLE_SELECTION_TOOL (self)->selection);
+    GdkPixbuf *selection = GP_RECTANGLE_SELECTION_TOOL (self)->selection;
+
+    if (selection == NULL)
+    {
+        return NULL;
+    }
+
+    return g_object_ref (selection);
 }
 
 static void

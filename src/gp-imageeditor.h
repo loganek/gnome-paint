@@ -34,7 +34,7 @@ void gp_image_editor_set_tool (GPImageEditor *self, GPTool *tool);
 
 void gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color);
 
-gboolean gp_image_editor_is_selected (GPImageEditor *image_editor);
+gboolean gp_image_editor_get_selection (GPImageEditor *image_editor, GdkPixbuf **out_pixbuf);
 
 void gp_image_editor_set_pixbuf (GPImageEditor *image_editor, GdkPixbuf *pixbuf);
 GdkPixbuf * gp_image_editor_get_pixbuf (GPImageEditor *image_editor);

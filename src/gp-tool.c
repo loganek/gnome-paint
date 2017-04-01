@@ -32,12 +32,6 @@ apply_property (gpointer ptr, gpointer user_data)
     GP_TOOL_PROPERTY_GET_CLASS (ptr)->apply (GP_TOOL_PROPERTY (ptr), user_data);
 }
 
-static GtkWidget *
-gp_tool_default_create_icon (GPTool *self)
-{
-    return NULL; // TODO
-}
-
 static void
 gp_tool_default_draw (GPTool *self, cairo_t *cairo_context)
 {
@@ -77,7 +71,7 @@ gp_tool_default_get_properties (GPTool *tool)
 static void
 gp_tool_class_init (GPToolClass *klass)
 {
-    klass->create_icon = gp_tool_default_create_icon;
+    klass->create_icon = NULL;
     klass->draw = gp_tool_default_draw;
     klass->button_press = gp_tool_default_button_press;
     klass->button_release = gp_tool_default_button_release;
@@ -98,6 +92,8 @@ gp_tool_init (GPTool *self)
 GtkWidget*
 gp_tool_create_icon (GPTool *tool)
 {
+    g_assert (GP_TOOL_GET_CLASS (tool)->create_icon != NULL);
+
     return GP_TOOL_GET_CLASS (tool)->create_icon (tool);
 }
 

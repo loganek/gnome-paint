@@ -88,7 +88,7 @@ gp_document_manager_get_active_document (GPDocumentManager *manager)
 GPDocumentManager *
 gp_document_manager_get_default (void)
 {
-    static GPDocumentManager *manager = NULL; // TODO implement it in better way
+    static GPDocumentManager *manager = NULL;
 
     if (manager == NULL)
     {

@@ -31,7 +31,15 @@ void _gp_cmd_save (GSimpleAction *action,
                    GVariant      *parameter,
                    gpointer       user_data);
 
+void _gp_cmd_cut (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data);
+
 void _gp_cmd_copy (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data);
+
+void _gp_cmd_paste (GSimpleAction *action,
                    GVariant      *parameter,
                    gpointer       user_data);
 

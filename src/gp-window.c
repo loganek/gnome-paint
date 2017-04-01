@@ -46,8 +46,25 @@ G_DEFINE_TYPE_WITH_PRIVATE (GPWindow, gp_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static GActionEntry win_entries[] = {
     { "save-as", _gp_cmd_save_as },
-    { "save", _gp_cmd_save }
+    { "save", _gp_cmd_save },
+    { "cut", _gp_cmd_cut },
+    { "copy", _gp_cmd_copy },
+    { "paste", _gp_cmd_paste }
 };
+
+static void
+gp_window_update_action_sensitivity (GPWindow *window)
+{
+    GPWindowPrivate *priv = gp_window_get_instance_private (window);
+    GAction *action = NULL;
+    gboolean selection_enabled = gp_image_editor_get_selection (priv->image_editor, NULL);
+
+    action = g_action_map_lookup_action (G_ACTION_MAP (window), "cut");
+    g_simple_action_set_enabled (G_SIMPLE_ACTION (action), selection_enabled);
+
+    action = g_action_map_lookup_action (G_ACTION_MAP (window), "copy");
+    g_simple_action_set_enabled (G_SIMPLE_ACTION (action), selection_enabled);
+}
 
 static void
 on_tool_changed (GtkWidget *widget, gpointer user_data)
@@ -61,6 +78,12 @@ on_color_changed (GtkWidget *widget, gpointer user_data)
     GdkRGBA color;
     gp_color_selector_box_get_color (GP_COLOR_SELECTOR_BOX (widget), &color);
     gp_image_editor_set_color (GP_IMAGE_EDITOR (user_data), &color);
+}
+
+static void
+on_canvas_changed (GtkWidget *widget, gpointer user_data)
+{
+    gp_window_update_action_sensitivity (GP_WINDOW (user_data));
 }
 
 static void
@@ -107,6 +130,7 @@ gp_window_init (GPWindow *window)
     g_signal_connect (priv->tool_box, "tool-changed", G_CALLBACK (on_tool_changed), priv->image_editor);
     g_signal_connect (priv->color_selector_box, "color-changed", G_CALLBACK (on_color_changed), priv->image_editor);
     g_signal_connect (document_manager, "active-document-status-changed", G_CALLBACK (on_active_document_status_changed), priv->header_bar);
+    g_signal_connect (priv->image_editor, "canvas-changed", G_CALLBACK (on_canvas_changed), window);
 
     gp_image_editor_set_tool (priv->image_editor, gp_tool_box_get_active_tool (priv->tool_box));
 
@@ -119,6 +143,7 @@ gp_window_init (GPWindow *window)
                                      G_N_ELEMENTS (win_entries),
                                      window);
 
+    gp_window_update_action_sensitivity (window);
 }
 
 GtkWidget *

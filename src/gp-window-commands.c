@@ -83,3 +83,30 @@ void _gp_cmd_save (GSimpleAction *action,
 
     save_file_cmd (GP_WINDOW (user_data), active_document, gp_document_info_has_custom_name (active_document));
 }
+
+void _gp_cmd_cut (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+
+}
+
+void _gp_cmd_copy (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+    GPImageEditor *editor = gp_window_get_active_image_editor (GP_WINDOW (user_data));
+    GdkPixbuf *selection = NULL;
+
+    g_return_if_fail (gp_image_editor_get_selection (editor, &selection) == TRUE);
+
+    gtk_clipboard_set_image (gtk_clipboard_get (GDK_SELECTION_CLIPBOARD), selection);
+    gtk_clipboard_store (gtk_clipboard_get (GDK_SELECTION_CLIPBOARD));
+}
+
+void _gp_cmd_paste (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+
+}

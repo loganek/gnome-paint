@@ -29,16 +29,16 @@
     <section>
       <attribute name="id">edit-section</attribute>
       <item>
-	<attribute name="label" translatable="yes">_Undo</attribute>
-	<attribute name="action">win.undo</attribute>
-      </item>
-      <item>
-	<attribute name="label" translatable="yes">_Redo</attribute>
-	<attribute name="action">win.redo</attribute>
+	<attribute name="label" translatable="yes">_Cut</attribute>
+	<attribute name="action">win.cut</attribute>
       </item>
       <item>
 	<attribute name="label" translatable="yes">_Copy</attribute>
 	<attribute name="action">win.copy</attribute>
+      </item>
+      <item>
+	<attribute name="label" translatable="yes">_Paste</attribute>
+	<attribute name="action">win.paste</attribute>
       </item>
     </section>
   </menu>

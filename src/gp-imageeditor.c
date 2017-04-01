@@ -27,6 +27,15 @@
 
 #define RESIZE_MARGIN 15
 
+/* Signals */
+enum
+{
+    CANVAS_CHANGED,
+    LAST_SIGNAL
+};
+
+static guint gp_image_editor_signals[LAST_SIGNAL] = { 0 };
+
 typedef enum
 {
     GP_RESIZE_MODE_NONE = 0,
@@ -185,6 +194,8 @@ on_canvas_button_release_event (GtkWidget      *widget,
 
     cairo_destroy (cr);
 
+    g_signal_emit (user_data, gp_image_editor_signals[CANVAS_CHANGED], 0);
+
     return TRUE;
 }
 
@@ -236,12 +247,6 @@ gp_image_editor_init (GPImageEditor *self)
                            GDK_BUTTON_PRESS_MASK
                            | GDK_BUTTON_RELEASE_MASK
                            | GDK_POINTER_MOTION_MASK);
-    gtk_widget_add_events (GTK_WIDGET (priv->canvas),
-                           GDK_BUTTON_PRESS_MASK
-                           | GDK_BUTTON_RELEASE_MASK
-                           | GDK_POINTER_MOTION_MASK);
-
-
 }
 
 static void
@@ -272,6 +277,12 @@ gp_image_editor_class_init (GPImageEditorClass *klass)
     gtk_widget_class_bind_template_callback (widget_class,
                                              on_canvas_motion_notify_event);
 
+    gp_image_editor_signals[CANVAS_CHANGED] = g_signal_new ("canvas-changed",
+                                                            G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
+                                                            G_SIGNAL_RUN_FIRST,
+                                                            0,
+                                                            NULL, NULL, NULL,
+                                                            G_TYPE_NONE, 0);
 }
 
 void
@@ -284,6 +295,7 @@ gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool)
     if (priv->tool != NULL)
     {
         gp_tool_deactivate (priv->tool);
+        g_signal_emit (image_editor, gp_image_editor_signals[CANVAS_CHANGED], 0);
     }
     gp_tool_activate (tool);
 
@@ -308,7 +320,7 @@ gp_image_editor_new (void)
 }
 
 gboolean
-gp_image_editor_is_selected (GPImageEditor *image_editor)
+gp_image_editor_get_selection (GPImageEditor *image_editor, GdkPixbuf **out_pixbuf)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (image_editor));
     GdkPixbuf *pixbuf = NULL;
@@ -322,7 +334,14 @@ gp_image_editor_is_selected (GPImageEditor *image_editor)
 
     if (pixbuf != NULL)
     {
-        g_object_unref (pixbuf);
+        if (out_pixbuf == NULL)
+        {
+            g_object_unref (pixbuf);
+        }
+        else
+        {
+            *out_pixbuf = pixbuf;
+        }
         return TRUE;
     }
 
@@ -351,9 +370,9 @@ gp_image_editor_get_pixbuf (GPImageEditor *image_editor)
     cairo_surface_t *surface = gp_drawing_area_get_surface (priv->canvas);
 
     GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface,
-                                 0, 0,
-                                 cairo_image_surface_get_width (surface),
-                                 cairo_image_surface_get_height (surface));
+                                                     0, 0,
+                                                     cairo_image_surface_get_width (surface),
+                                                     cairo_image_surface_get_height (surface));
 
     g_return_val_if_fail (pixbuf != NULL, NULL);
 

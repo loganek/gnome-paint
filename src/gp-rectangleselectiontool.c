@@ -19,6 +19,7 @@
 #include "gp-rectangleselectiontool.h"
 
 #include "gp-selectiontool.h"
+#include "gp-drawingarea.h"
 
 struct _GPRectangleSelectionTool
 {
@@ -78,6 +79,13 @@ gp_rectangle_selection_tool_button_press (GPTool *tool, GdkEventButton *event)
     gtk_widget_queue_draw (gp_tool_get_canvas_widget (tool));
 }
 
+static gboolean
+gp_rectangle_selection_tool_is_selected (GPRectangleSelectionTool *selection_tool)
+{
+    return selection_tool->start_point.x != selection_tool->current_point.x
+            && selection_tool->start_point.y != selection_tool->current_point.y;
+}
+
 static void
 gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_t *cairo_context)
 {
@@ -89,8 +97,7 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
         g_clear_object (&selection_tool->selection);
     }
 
-    if (selection_tool->start_point.x != selection_tool->current_point.x
-            && selection_tool->start_point.y != selection_tool->current_point.y)
+    if (gp_rectangle_selection_tool_is_selected (GP_RECTANGLE_SELECTION_TOOL (tool)) == TRUE)
     {
         selection_tool->selection = gdk_pixbuf_get_from_surface (surface,
                                                                  selection_tool->start_point.x,
@@ -132,7 +139,7 @@ gp_rectangle_selection_tool_deactivate (GPTool *tool)
 }
 
 static GdkPixbuf*
-gp_rectangle_selection_tool_get_selection(GPSelectionTool *self)
+gp_rectangle_selection_tool_get_selection (GPSelectionTool *self)
 {
     GdkPixbuf *selection = GP_RECTANGLE_SELECTION_TOOL (self)->selection;
 
@@ -145,9 +152,31 @@ gp_rectangle_selection_tool_get_selection(GPSelectionTool *self)
 }
 
 static void
+gp_rectangle_selection_tool_clear (GPSelectionTool *self, GdkRGBA color)
+{
+    GPDrawingArea *canvas = GP_DRAWING_AREA (gp_tool_get_canvas_widget (GP_TOOL (self)));
+    cairo_surface_t *surface = gp_drawing_area_get_surface (canvas);
+    cairo_t *cairo_context = cairo_create (surface);
+    GPRectangleSelectionTool *tool = GP_RECTANGLE_SELECTION_TOOL (self);
+    GdkPoint zero_point = { 0, 0 };
+
+    cairo_set_source_rgba (cairo_context, color.red, color.green, color.blue, color.alpha);
+    cairo_rectangle (cairo_context,
+                     tool->start_point.x, tool->start_point.y,
+                     tool->current_point.x - tool->start_point.x,
+                     tool->current_point.y - tool->start_point.y);
+    cairo_fill (cairo_context);
+
+    cairo_destroy (cairo_context);
+    tool->start_point = tool->current_point = zero_point;
+    gtk_widget_queue_draw (GTK_WIDGET (canvas));
+}
+
+static void
 gp_rectangle_selection_tool_interface_init (GPSelectionToolInterface *iface)
 {
     iface->get_selection = gp_rectangle_selection_tool_get_selection;
+    iface->clear = gp_rectangle_selection_tool_clear;
 }
 
 static void

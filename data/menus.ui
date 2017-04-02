@@ -3,6 +3,11 @@
 <interface domain='gnome-logs'>
   <menu id='app-menu'>
     <section>
+      <attribute name="id">help-section</attribute>
+      <item>
+        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
+        <attribute name="action">app.shortcuts</attribute>
+      </item>
       <item>
 	<attribute name="accel">F1</attribute>
 	<attribute name="label" translatable="yes">_Help</attribute>
@@ -31,6 +36,7 @@
       <item>
 	<attribute name="label" translatable="yes">_Cut</attribute>
 	<attribute name="action">win.cut</attribute>
+	
       </item>
       <item>
 	<attribute name="label" translatable="yes">_Copy</attribute>

@@ -26,7 +26,7 @@ gp_selection_tool_default_init (GPSelectionToolInterface *iface)
 }
 
 GdkPixbuf*
-gp_selection_tool_get_selection(GPSelectionTool *self)
+gp_selection_tool_get_selection (GPSelectionTool *self)
 {
     GPSelectionToolInterface *iface;
 
@@ -38,3 +38,15 @@ gp_selection_tool_get_selection(GPSelectionTool *self)
     return iface->get_selection (self);
 }
 
+void
+gp_selection_tool_clear (GPSelectionTool *self, GdkRGBA color)
+{
+    GPSelectionToolInterface *iface;
+
+    g_return_if_fail (GP_IS_SELECTION_TOOL (self) == TRUE);
+
+    iface = GP_SELECTION_TOOL_GET_IFACE (self);
+    g_return_if_fail (iface->clear != NULL);
+
+    return iface->clear (self, color);
+}

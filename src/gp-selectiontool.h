@@ -31,9 +31,12 @@ struct _GPSelectionToolInterface
   GTypeInterface parent_iface;
 
   GdkPixbuf* (*get_selection) (GPSelectionTool  *self);
+  void (*clear) (GPSelectionTool  *self, GdkRGBA color);
 };
 
 GdkPixbuf* gp_selection_tool_get_selection (GPSelectionTool *self);
+
+void gp_selection_tool_clear (GPSelectionTool *self, GdkRGBA color);
 
 G_END_DECLS
 

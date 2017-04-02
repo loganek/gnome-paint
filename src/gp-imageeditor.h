@@ -39,6 +39,8 @@ gboolean gp_image_editor_get_selection (GPImageEditor *image_editor, GdkPixbuf *
 void gp_image_editor_set_pixbuf (GPImageEditor *image_editor, GdkPixbuf *pixbuf);
 GdkPixbuf * gp_image_editor_get_pixbuf (GPImageEditor *image_editor);
 
+void gp_image_editor_clear_selection (GPImageEditor *image_editor);
+
 G_END_DECLS
 
 #endif /* GP_DRAWING_AREA_H_ */

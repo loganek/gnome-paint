@@ -54,7 +54,8 @@ struct _GPImageEditor
 typedef struct
 {
     GPTool *tool;
-    GdkRGBA color;
+    GdkRGBA fg_color;
+    GdkRGBA bg_color;
     GPResizeMode resize_mode;
     GtkEventBox *resizer;
     GPDrawingArea *canvas;
@@ -189,7 +190,7 @@ on_canvas_button_release_event (GtkWidget      *widget,
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
     cairo_t *cr = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
 
-    cairo_set_source_rgba (cr, priv->color.red, priv->color.green, priv->color.blue, priv->color.alpha);
+    cairo_set_source_rgba (cr, priv->fg_color.red, priv->fg_color.green, priv->fg_color.blue, priv->fg_color.alpha);
     gp_tool_button_release (priv->tool, event, cr);
 
     cairo_destroy (cr);
@@ -207,7 +208,7 @@ on_canvas_draw_overlay (GtkWidget *widget,
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
 
     cairo_save (cr);
-    cairo_set_source_rgba (cr, priv->color.red, priv->color.green, priv->color.blue, priv->color.alpha);
+    cairo_set_source_rgba (cr, priv->fg_color.red, priv->fg_color.green, priv->fg_color.blue, priv->fg_color.alpha);
 
     gp_tool_draw (priv->tool, cr);
 
@@ -230,10 +231,12 @@ static void
 gp_image_editor_init (GPImageEditor *self)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (self);
-
+    GdkRGBA bg_color = { 1.0, 1.0, 1.0, 1.0 };
     gtk_widget_init_template (GTK_WIDGET (self));
 
     priv->tool = NULL;
+
+    priv->bg_color = bg_color; // todo set from application
 
     gtk_widget_set_margin_bottom (GTK_WIDGET (priv->canvas), RESIZE_MARGIN);
     gtk_widget_set_margin_end (GTK_WIDGET (priv->canvas), RESIZE_MARGIN);
@@ -310,7 +313,7 @@ gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
 
-    priv->color = *color;
+    priv->fg_color = *color;
 }
 
 GtkWidget *
@@ -346,6 +349,16 @@ gp_image_editor_get_selection (GPImageEditor *image_editor, GdkPixbuf **out_pixb
     }
 
     return FALSE;
+}
+
+void
+gp_image_editor_clear_selection (GPImageEditor *image_editor)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (image_editor));
+
+    g_return_if_fail (GP_IS_SELECTION_TOOL (priv->tool) == TRUE);
+
+    gp_selection_tool_clear (GP_SELECTION_TOOL (priv->tool), priv->bg_color);
 }
 
 void

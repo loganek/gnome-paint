@@ -50,15 +50,26 @@ on_quit (GSimpleAction *action,
 }
 
 static void
+add_accelerator (GtkApplication *app,
+                 const gchar    *action_name,
+                 const gchar    *accel)
+{
+    const gchar *vaccels[] = {
+        accel,
+        NULL
+    };
+
+    gtk_application_set_accels_for_action (app, action_name, vaccels);
+}
+
+
+static void
 gp_application_activate (GApplication *application)
 {
     GtkWidget *window;
-    const gchar * const close_accel[] = { "<Primary>w", NULL };
 
     window = gp_window_new (GTK_APPLICATION (application));
     gtk_widget_show (window);
-    gtk_application_set_accels_for_action (GTK_APPLICATION (application),
-                                           "win.close", close_accel);
 }
 
 static const GOptionEntry options[] =
@@ -79,6 +90,44 @@ gp_application_handle_local_options (GApplication *application,
     }
 
     return -1;
+}
+
+static void
+on_keyboard_shortcuts (GSimpleAction *action,
+                       GVariant *parameter,
+                       gpointer user_data)
+{
+    GtkApplication *app;
+    GPWindow *window;
+
+    app = GTK_APPLICATION (user_data);
+    window = GP_WINDOW (gtk_application_get_active_window (app));
+
+    static GtkWidget *shortcuts_window;
+
+    if (shortcuts_window == NULL)
+    {
+        GtkBuilder *builder;
+
+        builder = gtk_builder_new_from_resource ("/org/gnome/Paint/gp-shortcuts.ui");
+        shortcuts_window = GTK_WIDGET (gtk_builder_get_object (builder, "shortcuts"));
+
+        g_signal_connect (shortcuts_window,
+                          "destroy",
+                          G_CALLBACK (gtk_widget_destroyed),
+                          &shortcuts_window);
+
+        g_object_unref (builder);
+    }
+
+    if (GTK_WINDOW (window) != gtk_window_get_transient_for (GTK_WINDOW (shortcuts_window)))
+    {
+        gtk_window_set_transient_for (GTK_WINDOW (shortcuts_window), GTK_WINDOW (window));
+    }
+
+    gtk_widget_show_all (shortcuts_window);
+    gtk_window_present (GTK_WINDOW (shortcuts_window));
+
 }
 
 static void
@@ -133,9 +182,10 @@ on_help (GSimpleAction *action,
 }
 
 static GActionEntry actions[] = {
-    { "help", on_help },
-    { "about", on_about },
-    { "quit", on_quit }
+    { "shortcuts", on_keyboard_shortcuts, NULL, NULL, NULL },
+    { "help", on_help, NULL, NULL, NULL },
+    { "about", on_about, NULL, NULL, NULL },
+    { "quit", on_quit, NULL, NULL, NULL }
 };
 
 static void
@@ -162,6 +212,10 @@ gp_application_startup (GApplication *application)
     gp_image_editor_get_type ();
     gp_header_bar_get_type ();
 
+    add_accelerator (GTK_APPLICATION (application), "win.close", "<Primary>w");
+    add_accelerator (GTK_APPLICATION (application), "win.copy",  "<Primary>c");
+    add_accelerator (GTK_APPLICATION (application), "win.cut",   "<Primary>x");
+    add_accelerator (GTK_APPLICATION (application), "win.paste", "<Primary>v");
 }
 
 

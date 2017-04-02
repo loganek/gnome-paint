@@ -88,7 +88,10 @@ void _gp_cmd_cut (GSimpleAction *action,
                    GVariant      *parameter,
                    gpointer       user_data)
 {
+    GPImageEditor *editor = gp_window_get_active_image_editor (GP_WINDOW (user_data));
 
+    _gp_cmd_copy (action, parameter, user_data);
+    gp_image_editor_clear_selection (editor);
 }
 
 void _gp_cmd_copy (GSimpleAction *action,

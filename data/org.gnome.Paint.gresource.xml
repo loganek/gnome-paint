@@ -7,6 +7,7 @@
     <file preprocess='xml-stripblanks'>gp-imageeditor.ui</file>
     <file preprocess='xml-stripblanks'>gp-toolbox.ui</file>
     <file preprocess='xml-stripblanks'>gp-window.ui</file>
+    <file preprocess="xml-stripblanks">gp-shortcuts.ui</file>
   </gresource>
   <gresource prefix='/org/gnome/Paint/gtk'>
     <file preprocess='xml-stripblanks'>menus.ui</file>

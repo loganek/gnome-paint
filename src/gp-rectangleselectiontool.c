@@ -21,12 +21,29 @@
 #include "gp-selectiontool.h"
 #include "gp-drawingarea.h"
 
+typedef enum {
+    STATE_NONE,
+    STATE_SELECTING,
+    STATE_SELECTED,
+    STATE_MOVING
+} GPSelectionToolState;
+
 struct _GPRectangleSelectionTool
 {
     GPTool parent_instance;
 
-    GdkPoint start_point;
-    GdkPoint current_point;
+    gdouble base_x;
+    gdouble base_y;
+    gdouble width;
+    gdouble height;
+
+    gdouble offset_x;
+    gdouble offset_y;
+    gdouble start_x;
+    gdouble start_y;
+
+    GPSelectionToolState state;
+
     gboolean grabbed;
     GdkPixbuf *selection;
 };
@@ -39,27 +56,78 @@ G_DEFINE_TYPE_WITH_CODE (GPRectangleSelectionTool, gp_rectangle_selection_tool, 
                                                 gp_rectangle_selection_tool_interface_init))
 
 static void
-gp_rectangle_selection_tool_draw (GPTool *tool,
-                                  cairo_t *cairo_context)
+draw_bounding_box (GPRectangleSelectionTool *tool, cairo_t *cairo_context)
 {
-    GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
-    GdkPoint start_point = selection_tool->start_point;
-    GdkPoint current_point = selection_tool->current_point;
     static const double dashed3[] = {14.0, 6.0};
 
-    if (start_point.x == current_point.x && start_point.y == current_point.y)
+    if (tool->state == STATE_NONE)
     {
         return;
     }
 
-    cairo_set_dash(cairo_context, dashed3, 1, 0);
-    cairo_set_source_rgb(cairo_context, 1, 0, 0);
+    if (tool->width == 0 || tool->height == 0)
+    {
+        return;
+    }
 
+    cairo_save (cairo_context);
+    cairo_set_dash(cairo_context, dashed3, 1, 0);
+    cairo_set_line_width (cairo_context, 1.0);
     cairo_rectangle (cairo_context,
-                     start_point.x, start_point.y,
-                     current_point.x - start_point.x,
-                     current_point.y - start_point.y);
+                     tool->start_x,
+                     tool->start_y,
+                     tool->width, tool->height);
     cairo_stroke (cairo_context);
+    cairo_restore (cairo_context);
+}
+
+static void
+draw_selection_to_location (GPRectangleSelectionTool *tool, cairo_t *cairo_context)
+{
+    GdkPixbuf *pixbuf;
+
+    pixbuf = gp_selection_tool_get_selection (GP_SELECTION_TOOL (tool));
+
+    g_return_if_fail (pixbuf != NULL);
+
+    gdk_cairo_set_source_pixbuf (cairo_context, pixbuf,
+                                 tool->start_x,
+                                 tool->start_y);
+
+    cairo_rectangle(cairo_context,
+                    tool->start_x,
+                    tool->start_y,
+                    tool->width, tool->height);
+    cairo_clip(cairo_context);
+    cairo_paint(cairo_context);
+
+    g_object_unref (pixbuf);
+}
+
+static void
+move_region (GPRectangleSelectionTool *tool, cairo_t *cairo_context)
+{
+    // Clear previous rectangle
+    cairo_set_source_rgba (cairo_context, 1.0, 1.0, 1.0, 1.0);
+    cairo_rectangle (cairo_context, tool->base_x, tool->base_y, tool->width, tool->height);
+    cairo_fill (cairo_context);
+
+    // Draw new
+    draw_selection_to_location (tool, cairo_context);
+}
+
+static void
+gp_rectangle_selection_tool_draw (GPTool *tool,
+                                  cairo_t *cairo_context)
+{
+    GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
+
+    if (selection_tool->state == STATE_MOVING)
+    {
+        move_region (selection_tool, cairo_context);
+    }
+
+    draw_bounding_box (selection_tool, cairo_context);
 }
 
 static GtkWidget*
@@ -71,19 +139,36 @@ gp_line_tool_create_icon (GPTool *tool)
 static void
 gp_rectangle_selection_tool_button_press (GPTool *tool, GdkEventButton *event)
 {
-    GdkPoint point = { event->x, event->y };
     GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
+    GPSelectionToolState prev_state = selection_tool->state;
 
-    selection_tool->current_point = selection_tool->start_point = point;
+    selection_tool->state =
+            gp_selection_tool_is_in_selection (GP_SELECTION_TOOL (tool), event->x, event->y) ?
+                STATE_MOVING : STATE_SELECTING;
+
+    if (selection_tool->state == STATE_SELECTING)
+    {
+        if (prev_state == STATE_SELECTED)
+        {
+            GtkWidget *widget = gp_tool_get_canvas_widget (tool);
+            cairo_t *cairo_context = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
+
+            move_region (selection_tool, cairo_context);
+            cairo_destroy (cairo_context);
+        }
+
+        selection_tool->start_x = selection_tool->base_x = event->x;
+        selection_tool->start_y = selection_tool->base_y = event->y;
+        selection_tool->width = selection_tool->height = 0;
+    }
+    else
+    {
+        selection_tool->offset_x = event->x - selection_tool->start_x;
+        selection_tool->offset_y = event->y - selection_tool->start_y;
+    }
+
     selection_tool->grabbed = TRUE;
     gtk_widget_queue_draw (gp_tool_get_canvas_widget (tool));
-}
-
-static gboolean
-gp_rectangle_selection_tool_is_selected (GPRectangleSelectionTool *selection_tool)
-{
-    return selection_tool->start_point.x != selection_tool->current_point.x
-            && selection_tool->start_point.y != selection_tool->current_point.y;
 }
 
 static void
@@ -92,34 +177,52 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
     cairo_surface_t *surface = cairo_get_target (cairo_context);
     GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
 
-    if (selection_tool->selection != NULL)
+    if (selection_tool->state == STATE_SELECTING
+            && selection_tool->width != 0 && selection_tool->height != 0)
     {
+        if (selection_tool->width < 0)
+        {
+            selection_tool->base_x = selection_tool->start_x = selection_tool->base_x + selection_tool->width;
+            selection_tool->width = -selection_tool->width;
+        }
+        if (selection_tool->height < 0)
+        {
+            selection_tool->base_y = selection_tool->start_y = selection_tool->base_y + selection_tool->height;
+            selection_tool->height = -selection_tool->height;
+        }
+
         g_clear_object (&selection_tool->selection);
-    }
-
-    if (gp_rectangle_selection_tool_is_selected (GP_RECTANGLE_SELECTION_TOOL (tool)) == TRUE)
-    {
         selection_tool->selection = gdk_pixbuf_get_from_surface (surface,
-                                                                 selection_tool->start_point.x,
-                                                                 selection_tool->start_point.y,
-                                                                 selection_tool->current_point.x - selection_tool->start_point.x,
-                                                                 selection_tool->current_point.y - selection_tool->start_point.y);
+                                                                 selection_tool->base_x,
+                                                                 selection_tool->base_y,
+                                                                 selection_tool->width,
+                                                                 selection_tool->height);
     }
 
+    selection_tool->state = STATE_SELECTED;
     selection_tool->grabbed = FALSE;
 }
 
 static void
 gp_rectangle_selection_tool_move (GPTool *tool, GdkEventMotion *event)
 {
-    GdkPoint point = { event->x, event->y };
+    GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
 
-    if (GP_RECTANGLE_SELECTION_TOOL (tool)->grabbed == FALSE)
+    if (selection_tool->grabbed == FALSE)
     {
         return;
     }
 
-    GP_RECTANGLE_SELECTION_TOOL (tool)->current_point = point;
+    if (selection_tool->state == STATE_MOVING)
+    {
+        selection_tool->start_x = event->x - selection_tool->offset_x;
+        selection_tool->start_y = event->y - selection_tool->offset_y;
+    }
+    else if (selection_tool->state == STATE_SELECTING)
+    {
+        selection_tool->width = event->x - selection_tool->base_x;
+        selection_tool->height = event->y - selection_tool->base_y;
+    }
     gtk_widget_queue_draw (gp_tool_get_canvas_widget (tool));
 }
 
@@ -128,7 +231,18 @@ gp_rectangle_selection_tool_deactivate (GPTool *tool)
 {
     GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
 
+    if (selection_tool->state == STATE_SELECTED
+            && (selection_tool->base_x != selection_tool->start_x || selection_tool->base_y != selection_tool->start_y))
+    {
+        GtkWidget *widget = gp_tool_get_canvas_widget (tool);
+        cairo_t *cairo_context = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
+
+        move_region (selection_tool, cairo_context);
+        cairo_destroy (cairo_context);
+    }
+
     selection_tool->grabbed = FALSE;
+    selection_tool->state = STATE_NONE;
 
     if (selection_tool->selection != NULL)
     {
@@ -158,18 +272,37 @@ gp_rectangle_selection_tool_clear (GPSelectionTool *self, GdkRGBA color)
     cairo_surface_t *surface = gp_drawing_area_get_surface (canvas);
     cairo_t *cairo_context = cairo_create (surface);
     GPRectangleSelectionTool *tool = GP_RECTANGLE_SELECTION_TOOL (self);
-    GdkPoint zero_point = { 0, 0 };
 
     cairo_set_source_rgba (cairo_context, color.red, color.green, color.blue, color.alpha);
     cairo_rectangle (cairo_context,
-                     tool->start_point.x, tool->start_point.y,
-                     tool->current_point.x - tool->start_point.x,
-                     tool->current_point.y - tool->start_point.y);
+                     tool->base_x, tool->base_y,
+                     tool->width,
+                     tool->height);
     cairo_fill (cairo_context);
 
     cairo_destroy (cairo_context);
-    tool->start_point = tool->current_point = zero_point;
+    tool->state = STATE_NONE;
     gtk_widget_queue_draw (GTK_WIDGET (canvas));
+}
+
+static gboolean
+is_between (gdouble x, gdouble a, gdouble b)
+{
+    return (a <= x && x <= b) || (b <= x && x <= a);
+}
+
+static gboolean
+gp_rectangle_selection_tool_is_in_selection (GPSelectionTool *self, gdouble x, gdouble y)
+{
+    GPRectangleSelectionTool *tool = GP_RECTANGLE_SELECTION_TOOL (self);
+
+    if (tool->state == STATE_NONE)
+    {
+        return FALSE;
+    }
+
+    return is_between (x, tool->start_x, tool->start_x + tool->width)
+            && is_between (y, tool->start_y, tool->start_y + tool->height);
 }
 
 static void
@@ -177,6 +310,7 @@ gp_rectangle_selection_tool_interface_init (GPSelectionToolInterface *iface)
 {
     iface->get_selection = gp_rectangle_selection_tool_get_selection;
     iface->clear = gp_rectangle_selection_tool_clear;
+    iface->is_in_selection = gp_rectangle_selection_tool_is_in_selection;
 }
 
 static void
@@ -184,6 +318,7 @@ gp_rectangle_selection_tool_init (GPRectangleSelectionTool *self)
 {
     self->grabbed = FALSE;
     self->selection = NULL;
+    self->offset_x = self->offset_y = 0.0;
 }
 
 static void

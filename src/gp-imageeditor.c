@@ -81,6 +81,26 @@ calculate_resize_mode (GtkWidget *widget, gint pos_x, gint pos_y)
 
     return resize_mode;
 }
+
+static void
+update_canvas_cursor (GPImageEditorPrivate *priv, gdouble x, gdouble y)
+{
+    GdkCursorType cursor_type;
+
+    if (GP_IS_SELECTION_TOOL (priv->tool)
+            && gp_selection_tool_is_in_selection (GP_SELECTION_TOOL (priv->tool), x, y))
+    {
+        cursor_type = GDK_FLEUR;
+    }
+    else
+    {
+        cursor_type = GDK_CROSSHAIR;
+    }
+
+    gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (priv->canvas)),
+                           gdk_cursor_new_for_display (gdk_display_get_default(), cursor_type));
+}
+
 static gboolean
 on_resizer_button_press_event (GtkWidget      *widget,
                                GdkEventButton *event,
@@ -222,6 +242,8 @@ on_canvas_motion_notify_event (GtkWidget      *widget,
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
 
+    update_canvas_cursor (priv, event->x, event->y);
+
     gp_tool_move (priv->tool, event);
 
     return TRUE;
@@ -303,9 +325,6 @@ gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool)
     gp_tool_activate (tool);
 
     priv->tool = tool;
-
-    // TODO set cursor on show widget
-    gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (priv->canvas)), gdk_cursor_new_for_display (gdk_display_get_default(), GDK_CROSSHAIR));
 }
 
 void

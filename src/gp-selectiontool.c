@@ -50,3 +50,16 @@ gp_selection_tool_clear (GPSelectionTool *self, GdkRGBA color)
 
     return iface->clear (self, color);
 }
+
+gboolean
+gp_selection_tool_is_in_selection (GPSelectionTool *self, gdouble x, gdouble y)
+{
+    GPSelectionToolInterface *iface;
+
+    g_return_val_if_fail (GP_IS_SELECTION_TOOL (self) == TRUE, FALSE);
+
+    iface = GP_SELECTION_TOOL_GET_IFACE (self);
+    g_return_val_if_fail (iface->is_in_selection != NULL, FALSE);
+
+    return iface->is_in_selection (self, x, y);
+}

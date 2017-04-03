@@ -33,13 +33,13 @@ gp_selection_tool_get_selection (GPSelectionTool *self)
     g_return_val_if_fail (GP_IS_SELECTION_TOOL (self), NULL);
 
     iface = GP_SELECTION_TOOL_GET_IFACE (self);
-    g_return_if_fail (iface->get_selection != NULL);
+    g_return_val_if_fail (iface->get_selection != NULL, NULL);
 
     return iface->get_selection (self);
 }
 
 void
-gp_selection_tool_clear (GPSelectionTool *self, GdkRGBA color)
+gp_selection_tool_clear (GPSelectionTool *self)
 {
     GPSelectionToolInterface *iface;
 
@@ -48,7 +48,7 @@ gp_selection_tool_clear (GPSelectionTool *self, GdkRGBA color)
     iface = GP_SELECTION_TOOL_GET_IFACE (self);
     g_return_if_fail (iface->clear != NULL);
 
-    return iface->clear (self, color);
+    return iface->clear (self);
 }
 
 gboolean

@@ -83,6 +83,16 @@ calculate_resize_mode (GtkWidget *widget, gint pos_x, gint pos_y)
 }
 
 static void
+update_tool_color (GPImageEditor *image_editor)
+{
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
+
+    g_return_if_fail (priv->tool != NULL);
+
+    gp_tool_set_color (priv->tool, &priv->fg_color, &priv->bg_color);
+}
+
+static void
 update_canvas_cursor (GPImageEditorPrivate *priv, gdouble x, gdouble y)
 {
     GdkCursorType cursor_type;
@@ -315,16 +325,16 @@ gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
 
-    gp_tool_set_canvas_widget (tool, GTK_WIDGET (priv->canvas));
-
     if (priv->tool != NULL)
     {
         gp_tool_deactivate (priv->tool);
         g_signal_emit (image_editor, gp_image_editor_signals[CANVAS_CHANGED], 0);
     }
-    gp_tool_activate (tool);
 
     priv->tool = tool;
+    update_tool_color (image_editor);
+    gp_tool_set_canvas_widget (tool, GTK_WIDGET (priv->canvas));
+    gp_tool_activate (tool);
 }
 
 void
@@ -333,6 +343,7 @@ gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color)
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
 
     priv->fg_color = *color;
+    update_tool_color (image_editor);
 }
 
 GtkWidget *
@@ -377,7 +388,7 @@ gp_image_editor_clear_selection (GPImageEditor *image_editor)
 
     g_return_if_fail (GP_IS_SELECTION_TOOL (priv->tool) == TRUE);
 
-    gp_selection_tool_clear (GP_SELECTION_TOOL (priv->tool), priv->bg_color);
+    gp_selection_tool_clear (GP_SELECTION_TOOL (priv->tool));
 }
 
 void

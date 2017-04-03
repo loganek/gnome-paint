@@ -71,6 +71,8 @@ draw_bounding_box (GPRectangleSelectionTool *tool, cairo_t *cairo_context)
     }
 
     cairo_save (cairo_context);
+    cairo_set_source_rgba(cairo_context, 0.0, 0.0, 0.0, 1.0);
+    cairo_set_line_width (cairo_context, 1.0);
     cairo_set_dash(cairo_context, dashed3, 1, 0);
     cairo_set_line_width (cairo_context, 1.0);
     cairo_rectangle (cairo_context,
@@ -108,7 +110,9 @@ static void
 move_region (GPRectangleSelectionTool *tool, cairo_t *cairo_context)
 {
     // Clear previous rectangle
-    cairo_set_source_rgba (cairo_context, 1.0, 1.0, 1.0, 1.0);
+    GdkRGBA bg_color;
+    gp_tool_get_color (GP_TOOL (tool), NULL, &bg_color);
+    cairo_set_source_rgba (cairo_context, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
     cairo_rectangle (cairo_context, tool->base_x, tool->base_y, tool->width, tool->height);
     cairo_fill (cairo_context);
 
@@ -266,14 +270,17 @@ gp_rectangle_selection_tool_get_selection (GPSelectionTool *self)
 }
 
 static void
-gp_rectangle_selection_tool_clear (GPSelectionTool *self, GdkRGBA color)
+gp_rectangle_selection_tool_clear (GPSelectionTool *self)
 {
     GPDrawingArea *canvas = GP_DRAWING_AREA (gp_tool_get_canvas_widget (GP_TOOL (self)));
     cairo_surface_t *surface = gp_drawing_area_get_surface (canvas);
     cairo_t *cairo_context = cairo_create (surface);
     GPRectangleSelectionTool *tool = GP_RECTANGLE_SELECTION_TOOL (self);
+    GdkRGBA bg_color;
 
-    cairo_set_source_rgba (cairo_context, color.red, color.green, color.blue, color.alpha);
+    gp_tool_get_color (GP_TOOL (tool), NULL, &bg_color);
+
+    cairo_set_source_rgba (cairo_context, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
     cairo_rectangle (cairo_context,
                      tool->base_x, tool->base_y,
                      tool->width,

@@ -15,5 +15,6 @@
   <gresource prefix='/org/gnome/Paint'> <!-- toolicons -->
     <file>toolicons/line.png</file>
     <file>toolicons/rectangle.png</file>
+    <file>toolicons/rectangleselection.png</file>
   </gresource>
 </gresources>

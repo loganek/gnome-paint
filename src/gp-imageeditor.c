@@ -95,20 +95,45 @@ update_tool_color (GPImageEditor *image_editor)
 static void
 update_canvas_cursor (GPImageEditorPrivate *priv, gdouble x, gdouble y)
 {
-    GdkCursorType cursor_type;
+    GdkCursor *cursor = NULL;
 
-    if (GP_IS_SELECTION_TOOL (priv->tool)
-            && gp_selection_tool_is_in_selection (GP_SELECTION_TOOL (priv->tool), x, y))
+    if (!GP_IS_SELECTION_TOOL (priv->tool))
     {
-        cursor_type = GDK_FLEUR;
-    }
-    else
-    {
-        cursor_type = GDK_CROSSHAIR;
+        goto cursor_region_none;
     }
 
-    gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (priv->canvas)),
-                           gdk_cursor_new_for_display (gdk_display_get_default(), cursor_type));
+    switch (gp_selection_tool_region_in_selection (GP_SELECTION_TOOL (priv->tool), x, y))
+    {
+    case GP_REGION_BL_CORNER:
+    case GP_REGION_TR_CORNER:
+        cursor = gdk_cursor_new_from_name (gdk_display_get_default(), "nesw-resize");
+        break;
+    case GP_REGION_BR_CORNER:
+    case GP_REGION_TL_CORNER:
+        cursor = gdk_cursor_new_from_name (gdk_display_get_default(), "nwse-resize");
+        break;
+    case GP_REGION_L_SIDE:
+    case GP_REGION_R_SIDE:
+        cursor = gdk_cursor_new_from_name (gdk_display_get_default(), "ew-resize");
+        break;
+    case GP_REGION_T_SIDE:
+    case GP_REGION_B_SIDE:
+        cursor = gdk_cursor_new_from_name (gdk_display_get_default(), "ns-resize");
+        break;
+    case GP_REGION_INSIDE:
+        cursor = gdk_cursor_new_for_display (gdk_display_get_default(), GDK_FLEUR);
+        break;
+    case GP_REGION_NONE:
+cursor_region_none:
+        cursor = gdk_cursor_new_for_display (gdk_display_get_default(), GDK_CROSSHAIR);
+        break;
+    default:
+        g_assert_not_reached ();
+    }
+
+    g_return_if_fail (cursor != NULL);
+
+    gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (priv->canvas)), cursor);
 }
 
 static gboolean

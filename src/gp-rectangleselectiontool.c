@@ -21,11 +21,14 @@
 #include "gp-selectiontool.h"
 #include "gp-drawingarea.h"
 
+#define RESIZER_SIZE 10
+
 typedef enum {
     STATE_NONE,
     STATE_SELECTING,
     STATE_SELECTED,
-    STATE_MOVING
+    STATE_MOVING,
+    STATE_RESIZING
 } GPSelectionToolState;
 
 struct _GPRectangleSelectionTool
@@ -43,6 +46,7 @@ struct _GPRectangleSelectionTool
     gint start_y;
 
     GPSelectionToolState state;
+    GPSelectionToolRegion resize_mode;
 
     gboolean grabbed;
     GdkPixbuf *selection;
@@ -54,6 +58,20 @@ gp_rectangle_selection_tool_interface_init (GPSelectionToolInterface *iface);
 G_DEFINE_TYPE_WITH_CODE (GPRectangleSelectionTool, gp_rectangle_selection_tool, GP_TYPE_TOOL,
                          G_IMPLEMENT_INTERFACE (GP_TYPE_SELECTION_TOOL,
                                                 gp_rectangle_selection_tool_interface_init))
+
+static void draw_resizer (cairo_t *cairo_context, gint x, gint y)
+{
+    cairo_set_source_rgb(cairo_context, 0.0, 0.0, 0.0); // TODO magic color
+    cairo_rectangle (cairo_context,
+                     x,
+                     y,
+                     RESIZER_SIZE, RESIZER_SIZE);
+
+    cairo_stroke_preserve(cairo_context);
+
+    cairo_set_source_rgb(cairo_context, 0.6, 0.7, 0.9); // TODO magic color
+    cairo_fill(cairo_context);
+}
 
 static void
 draw_bounding_box (GPRectangleSelectionTool *tool, cairo_t *cairo_context)
@@ -81,6 +99,20 @@ draw_bounding_box (GPRectangleSelectionTool *tool, cairo_t *cairo_context)
                      tool->width, tool->height);
     cairo_stroke (cairo_context);
     cairo_restore (cairo_context);
+
+    if (!tool->grabbed)
+    {
+        draw_resizer (cairo_context, tool->start_x, tool->start_y);
+        draw_resizer (cairo_context, tool->start_x + tool->width - RESIZER_SIZE, tool->start_y);
+        draw_resizer (cairo_context, tool->start_x + tool->width - RESIZER_SIZE, tool->start_y + tool->height - RESIZER_SIZE);
+        draw_resizer (cairo_context, tool->start_x, tool->start_y + tool->height - RESIZER_SIZE);
+
+        draw_resizer (cairo_context, tool->start_x, tool->start_y + tool->height / 2 - RESIZER_SIZE / 2);
+        draw_resizer (cairo_context, tool->start_x + tool->width - RESIZER_SIZE, tool->start_y + tool->height / 2 - RESIZER_SIZE / 2);
+
+        draw_resizer (cairo_context, tool->start_x + tool->width / 2 - RESIZER_SIZE / 2, tool->start_y);
+        draw_resizer (cairo_context, tool->start_x + tool->width / 2 - RESIZER_SIZE / 2, tool->start_y + tool->height - RESIZER_SIZE);
+    }
 }
 
 static void
@@ -109,7 +141,7 @@ draw_selection_to_location (GPRectangleSelectionTool *tool, cairo_t *cairo_conte
 static void
 move_region (GPRectangleSelectionTool *tool, cairo_t *cairo_context)
 {
-    // Clear previous rectangle
+    // Clear previous rectangle TODO copy paste
     GdkRGBA bg_color;
     gp_tool_get_color (GP_TOOL (tool), NULL, &bg_color);
     cairo_set_source_rgba (cairo_context, bg_color.red, bg_color.green, bg_color.blue, bg_color.alpha);
@@ -130,6 +162,10 @@ gp_rectangle_selection_tool_draw (GPTool *tool,
     {
         move_region (selection_tool, cairo_context);
     }
+    else if (selection_tool->state == STATE_RESIZING)
+    {
+        // TODO
+    }
 
     draw_bounding_box (selection_tool, cairo_context);
 }
@@ -137,7 +173,7 @@ gp_rectangle_selection_tool_draw (GPTool *tool,
 static GtkWidget*
 gp_line_tool_create_icon (GPTool *tool)
 {
-    return gtk_image_new_from_resource ("/org/gnome/Paint/toolicons/line.png");
+    return gtk_image_new_from_resource ("/org/gnome/Paint/toolicons/rectangleselection.png");
 }
 
 static void
@@ -145,10 +181,21 @@ gp_rectangle_selection_tool_button_press (GPTool *tool, GdkEventButton *event)
 {
     GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
     GPSelectionToolState prev_state = selection_tool->state;
+    GPSelectionToolRegion region = gp_selection_tool_region_in_selection (GP_SELECTION_TOOL (tool), event->x, event->y);
 
-    selection_tool->state =
-            gp_selection_tool_is_in_selection (GP_SELECTION_TOOL (tool), event->x, event->y) ?
-                STATE_MOVING : STATE_SELECTING;
+    switch (region)
+    {
+    case GP_REGION_NONE:
+        selection_tool->state = STATE_SELECTING;
+        break;
+    case GP_REGION_INSIDE:
+        selection_tool->state = STATE_MOVING;
+        break;
+    default:
+        selection_tool->state = STATE_RESIZING;
+        selection_tool->resize_mode = region;
+        break;
+    }
 
     if (selection_tool->state == STATE_SELECTING)
     {
@@ -205,6 +252,8 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
 
     selection_tool->state = STATE_SELECTED;
     selection_tool->grabbed = FALSE;
+
+    gtk_widget_queue_draw (gp_tool_get_canvas_widget (tool));
 }
 
 static void
@@ -295,11 +344,11 @@ gp_rectangle_selection_tool_clear (GPSelectionTool *self)
 static gboolean
 is_between (gdouble x, gdouble a, gdouble b)
 {
-    return (a <= x && x <= b) || (b <= x && x <= a);
+    return a <= x && x <= b;
 }
 
-static gboolean
-gp_rectangle_selection_tool_is_in_selection (GPSelectionTool *self, gdouble x, gdouble y)
+static GPSelectionToolRegion
+gp_rectangle_selection_tool_region_in_selection (GPSelectionTool *self, gdouble x, gdouble y)
 {
     GPRectangleSelectionTool *tool = GP_RECTANGLE_SELECTION_TOOL (self);
 
@@ -308,8 +357,56 @@ gp_rectangle_selection_tool_is_in_selection (GPSelectionTool *self, gdouble x, g
         return FALSE;
     }
 
-    return is_between (x, tool->start_x, tool->start_x + tool->width)
-            && is_between (y, tool->start_y, tool->start_y + tool->height);
+    if (!is_between (x, tool->start_x, tool->start_x + tool->width)
+            || !is_between (y, tool->start_y, tool->start_y + tool->height))
+    {
+        return GP_REGION_NONE;
+    }
+
+    // TODO move somewhere else, optimize
+    if (is_between (x, tool->start_x, tool->start_x + RESIZER_SIZE))
+    {
+        if (is_between (y, tool->start_y, tool->start_y + RESIZER_SIZE))
+        {
+            return GP_REGION_TL_CORNER;
+        }
+        if (is_between (y, tool->start_y + tool->height - RESIZER_SIZE, tool->start_y + tool->height))
+        {
+            return GP_REGION_BL_CORNER;
+        }
+        if (is_between (y, tool->start_y + tool->height / 2 - RESIZER_SIZE, tool->start_y + tool->height / 2 + RESIZER_SIZE))
+        {
+            return GP_REGION_L_SIDE;
+        }
+    }
+    else if (is_between (x, tool->start_x + tool->width - RESIZER_SIZE, tool->start_x + tool->width))
+    {
+        if (is_between (y, tool->start_y, tool->start_y + RESIZER_SIZE))
+        {
+            return GP_REGION_TR_CORNER;
+        }
+        if (is_between (y, tool->start_y + tool->height - RESIZER_SIZE, tool->start_y + tool->height))
+        {
+            return GP_REGION_BR_CORNER;
+        }
+        if (is_between (y, tool->start_y + tool->height / 2 - RESIZER_SIZE, tool->start_y + tool->height / 2 + RESIZER_SIZE))
+        {
+            return GP_REGION_R_SIDE;
+        }
+    }
+    else if (is_between (x, tool->start_x + tool->width / 2- RESIZER_SIZE, tool->start_x + tool->width / 2 + RESIZER_SIZE))
+    {
+        if (is_between (y, tool->start_y, tool->start_y + RESIZER_SIZE))
+        {
+            return GP_REGION_T_SIDE;
+        }
+        if (is_between (y, tool->start_y + tool->height - RESIZER_SIZE, tool->start_y + tool->height))
+        {
+            return GP_REGION_B_SIDE;
+        }
+    }
+
+    return GP_REGION_INSIDE;
 }
 
 static void
@@ -317,7 +414,7 @@ gp_rectangle_selection_tool_interface_init (GPSelectionToolInterface *iface)
 {
     iface->get_selection = gp_rectangle_selection_tool_get_selection;
     iface->clear = gp_rectangle_selection_tool_clear;
-    iface->is_in_selection = gp_rectangle_selection_tool_is_in_selection;
+    iface->region_in_selection = gp_rectangle_selection_tool_region_in_selection;
 }
 
 static void

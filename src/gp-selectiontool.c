@@ -51,15 +51,15 @@ gp_selection_tool_clear (GPSelectionTool *self)
     return iface->clear (self);
 }
 
-gboolean
-gp_selection_tool_is_in_selection (GPSelectionTool *self, gdouble x, gdouble y)
+GPSelectionToolRegion
+gp_selection_tool_region_in_selection (GPSelectionTool *self, gdouble x, gdouble y)
 {
     GPSelectionToolInterface *iface;
 
     g_return_val_if_fail (GP_IS_SELECTION_TOOL (self) == TRUE, FALSE);
 
     iface = GP_SELECTION_TOOL_GET_IFACE (self);
-    g_return_val_if_fail (iface->is_in_selection != NULL, FALSE);
+    g_return_val_if_fail (iface->region_in_selection != NULL, FALSE);
 
-    return iface->is_in_selection (self, x, y);
+    return iface->region_in_selection (self, x, y);
 }

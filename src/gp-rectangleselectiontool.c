@@ -32,15 +32,15 @@ struct _GPRectangleSelectionTool
 {
     GPTool parent_instance;
 
-    gdouble base_x;
-    gdouble base_y;
-    gdouble width;
-    gdouble height;
+    gint base_x;
+    gint base_y;
+    gint width;
+    gint height;
 
-    gdouble offset_x;
-    gdouble offset_y;
-    gdouble start_x;
-    gdouble start_y;
+    gint offset_x;
+    gint offset_y;
+    gint start_x;
+    gint start_y;
 
     GPSelectionToolState state;
 

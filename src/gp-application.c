@@ -182,10 +182,10 @@ on_help (GSimpleAction *action,
 }
 
 static GActionEntry actions[] = {
-    { "shortcuts", on_keyboard_shortcuts, NULL, NULL, NULL },
-    { "help", on_help, NULL, NULL, NULL },
-    { "about", on_about, NULL, NULL, NULL },
-    { "quit", on_quit, NULL, NULL, NULL }
+    { "shortcuts", on_keyboard_shortcuts, NULL, NULL, NULL, {} },
+    { "help", on_help, NULL, NULL, NULL, {} },
+    { "about", on_about, NULL, NULL, NULL, {} },
+    { "quit", on_quit, NULL, NULL, NULL, {} }
 };
 
 static void

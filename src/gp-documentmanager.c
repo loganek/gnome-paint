@@ -19,12 +19,13 @@
 #include "config.h"
 
 #include "gp-documentmanager.h"
+#include "gp-marshal.h"
 
 /* Signals */
 enum
 {
     ACTIVE_DOCUMENT_CHANGED,
-    ACTIVE_DOCUMENT_STATUS_CHANGED,
+    DOCUMENT_CHANGED,
     LAST_SIGNAL
 };
 
@@ -40,6 +41,13 @@ struct _GPDocumentManager
 };
 
 G_DEFINE_TYPE (GPDocumentManager, gp_document_manager, G_TYPE_OBJECT)
+
+static void on_document_changed (GPDocumentInfo *document, gpointer user_data)
+{
+    GPDocumentManager *manager = GP_DOCUMENT_MANAGER (user_data);
+
+    g_signal_emit (manager, gp_document_manager_signals[DOCUMENT_CHANGED], 0, document, NULL);
+}
 
 static void
 gp_document_manager_init (GPDocumentManager *self)
@@ -60,21 +68,25 @@ gp_document_manager_class_init (GPDocumentManagerClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
+    gp_document_manager_signals[DOCUMENT_CHANGED] =
+            g_signal_new ("document-changed",
+                          G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
+                          G_SIGNAL_RUN_FIRST,
+                          0,
+                          NULL,
+                          NULL,
+                          gp_VOID__BOXED,
+                          G_TYPE_NONE, 1, GP_TYPE_DOCUMENT_INFO);
+
     gp_document_manager_signals[ACTIVE_DOCUMENT_CHANGED] =
             g_signal_new ("active-document-changed",
                           G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
                           G_SIGNAL_RUN_FIRST,
                           0,
-                          NULL, NULL, NULL,
-                          G_TYPE_NONE, 0);
-
-    gp_document_manager_signals[ACTIVE_DOCUMENT_STATUS_CHANGED] =
-            g_signal_new ("active-document-status-changed",
-                          G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
-                          G_SIGNAL_RUN_FIRST,
-                          0,
-                          NULL, NULL, NULL,
-                          G_TYPE_NONE, 0);
+                          NULL,
+                          NULL,
+                          NULL,
+                          G_TYPE_NONE, 0, NULL);
 
     gobject_class->finalize = gp_document_manager_finalize;
 }
@@ -98,12 +110,6 @@ gp_document_manager_get_default (void)
     return manager;
 }
 
-void
-gp_document_manager_notify_active_document_status_changed (GPDocumentManager *manager)
-{
-    g_signal_emit (manager, gp_document_manager_signals[ACTIVE_DOCUMENT_STATUS_CHANGED], 0);
-}
-
 GPDocumentInfo*
 gp_document_manager_create_document (GPDocumentManager *manager)
 {
@@ -115,6 +121,10 @@ gp_document_manager_create_document (GPDocumentManager *manager)
     }
 
     manager->documents = g_slist_append (manager->documents, document);
+
+    g_signal_connect(G_OBJECT (document), "changed",
+                     G_CALLBACK (on_document_changed),
+                     manager);
 
     return document;
 }
@@ -130,5 +140,5 @@ gp_document_manager_set_active_document (GPDocumentManager *manager, GPDocumentI
     g_return_if_fail (g_slist_find (manager->documents, document) == NULL);
 
     manager->active_document = document;
-    g_signal_emit (manager, gp_document_manager_signals[ACTIVE_DOCUMENT_STATUS_CHANGED], 0);
+    g_signal_emit (manager, gp_document_manager_signals[ACTIVE_DOCUMENT_CHANGED], 0);
 }

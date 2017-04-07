@@ -17,9 +17,16 @@
  */
 
 #include "gp-documentinfo.h"
-#include "gp-documentmanager.h"
 
 #include <glib/gi18n.h>
+
+enum
+{
+    SIGNAL_CHANGED,
+    LAST_SIGNAL
+};
+
+static guint gp_document_info_signals[LAST_SIGNAL] = { 0 };
 
 static const gchar* default_document_name = NULL;
 
@@ -38,10 +45,15 @@ G_DEFINE_TYPE (GPDocumentInfo, gp_document_info, G_TYPE_OBJECT)
 static void
 gp_document_info_set_filename (GPDocumentInfo *document, const gchar *filename)
 {
+    gboolean notify = g_strcmp0 (document->filename, filename) != 0;
+
     g_free (document->filename);
     document->filename = g_strdup (filename);
 
-    gp_document_manager_notify_active_document_status_changed (gp_document_manager_get_default ());
+    if (notify)
+    {
+        g_signal_emit (document, gp_document_info_signals[SIGNAL_CHANGED], 0, NULL);
+    }
 }
 
 static void
@@ -68,6 +80,16 @@ gp_document_info_class_init (GPDocumentInfoClass *klass)
     gobject_class->finalize = gp_document_info_finalize;
 
     default_document_name = _("Untitled Document");
+
+    gp_document_info_signals[SIGNAL_CHANGED] =
+            g_signal_new ("changed",
+                          G_TYPE_FROM_CLASS (klass),
+                          0,
+                          0,
+                          NULL,
+                          NULL,
+                          NULL,
+                          G_TYPE_NONE, 0);
 }
 
 gchar*

@@ -34,8 +34,6 @@ GPDocumentInfo* gp_document_manager_create_document (GPDocumentManager *manager)
 
 GPDocumentInfo * gp_document_manager_get_active_document (GPDocumentManager *manager);
 
-void gp_document_manager_notify_active_document_status_changed (GPDocumentManager *manager);
-
 void gp_document_manager_set_active_document (GPDocumentManager *manager, GPDocumentInfo *document);
 
 G_END_DECLS

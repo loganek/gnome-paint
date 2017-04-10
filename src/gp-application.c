@@ -20,11 +20,9 @@
 
 #include "gp-application.h"
 #include "gp-window.h"
-#include "gp-colorselectorbox.h"
-#include "gp-drawingarea.h"
-#include "gp-toolbox.h"
-#include "gp-imageeditor.h"
-#include "gp-headerbar.h"
+
+#include "gp-widget-init.h"
+#include "gp-help-commands.h"
 
 #include <glib/gi18n.h>
 
@@ -92,99 +90,10 @@ gp_application_handle_local_options (GApplication *application,
     return -1;
 }
 
-static void
-on_keyboard_shortcuts (GSimpleAction *action,
-                       GVariant *parameter,
-                       gpointer user_data)
-{
-    GtkApplication *app;
-    GPWindow *window;
-
-    app = GTK_APPLICATION (user_data);
-    window = GP_WINDOW (gtk_application_get_active_window (app));
-
-    static GtkWidget *shortcuts_window;
-
-    if (shortcuts_window == NULL)
-    {
-        GtkBuilder *builder;
-
-        builder = gtk_builder_new_from_resource ("/org/gnome/Paint/gp-shortcuts.ui");
-        shortcuts_window = GTK_WIDGET (gtk_builder_get_object (builder, "shortcuts"));
-
-        g_signal_connect (shortcuts_window,
-                          "destroy",
-                          G_CALLBACK (gtk_widget_destroyed),
-                          &shortcuts_window);
-
-        g_object_unref (builder);
-    }
-
-    if (GTK_WINDOW (window) != gtk_window_get_transient_for (GTK_WINDOW (shortcuts_window)))
-    {
-        gtk_window_set_transient_for (GTK_WINDOW (shortcuts_window), GTK_WINDOW (window));
-    }
-
-    gtk_widget_show_all (shortcuts_window);
-    gtk_window_present (GTK_WINDOW (shortcuts_window));
-
-}
-
-static void
-on_about (GSimpleAction *action,
-          GVariant *parameter,
-          gpointer user_data)
-{
-    GtkApplication *application;
-    GtkWindow *parent;
-    static const gchar* artists[] = {
-        NULL
-    };
-    static const gchar* authors[] = {
-        "Marcin Kolny <marcin.kolny@gmail.com>",
-        NULL
-    };
-
-    application = GTK_APPLICATION (user_data);
-    parent = gtk_application_get_active_window (GTK_APPLICATION (application));
-    gtk_show_about_dialog (parent,
-                           "authors", authors,
-                           "artists", artists,
-                           "translator-credits", _("translator-credits"),
-                           "comments", _("Simple Paint for GNOME"),
-                           "copyright", "Copyright © 2017 Marcin Kolny <marcin.kolny@gmail.com>",
-                           "license-type", GTK_LICENSE_GPL_3_0,
-                           "logo-icon-name", PACKAGE_TARNAME,
-                           "version", PACKAGE_VERSION,
-                           "website", PACKAGE_URL, NULL);
-}
-
-static void
-on_help (GSimpleAction *action,
-         GVariant *parameter,
-         gpointer user_data)
-{
-    GtkApplication *application;
-    GtkWindow *parent;
-    GError *error = NULL;
-
-    application = GTK_APPLICATION (user_data);
-    parent = gtk_application_get_active_window (application);
-
-    gtk_show_uri_on_window (parent, "help:gnome-paint",
-                            GDK_CURRENT_TIME, &error);
-
-    if (error)
-    {
-        g_debug (_("Error while opening help: %s"), error->message);
-        g_error_free (error);
-    }
-}
-
 static GActionEntry actions[] = {
-    { "shortcuts", on_keyboard_shortcuts, NULL, NULL, NULL, {} },
-    { "help", on_help, NULL, NULL, NULL, {} },
-    { "about", on_about, NULL, NULL, NULL, {} },
+    { "shortcuts", gp_help_commands_keyboard_shortcuts, NULL, NULL, NULL, {} },
+    { "help", gp_help_commands_help, NULL, NULL, NULL, {} },
+    { "about", gp_help_commands_about, NULL, NULL, NULL, {} },
     { "quit", on_quit, NULL, NULL, NULL, {} }
 };
 
@@ -205,12 +114,7 @@ gp_application_startup (GApplication *application)
             G_MENU_MODEL (g_object_ref_sink (gtk_application_get_menu_by_id (GTK_APPLICATION (application), "hamburger-menu")));
 
     /* Must register custom types before using them from GtkBuilder. */
-    gp_window_get_type ();
-    gp_drawing_area_get_type ();
-    gp_color_selector_box_get_type ();
-    gp_tool_box_get_type ();
-    gp_image_editor_get_type ();
-    gp_header_bar_get_type ();
+    gp_widget_gtype_init ();
 
     add_accelerator (GTK_APPLICATION (application), "win.close", "<Primary>w");
     add_accelerator (GTK_APPLICATION (application), "win.copy",  "<Primary>c");

@@ -22,6 +22,7 @@
 #include "gp-drawingarea.h"
 #include "gp-selectiontool.h"
 #include "gp-marshal.h"
+#include "gp-toolmanager.h"
 
 #include <glib/gi18n.h>
 
@@ -59,6 +60,7 @@ typedef struct
     GPResizeMode resize_mode;
     GtkEventBox *resizer;
     GPDrawingArea *canvas;
+    GPToolManager *tool_manager;
 } GPImageEditorPrivate;
 
 #define GP_IMAGE_EDITOR_PRIV(image_editor) ((GPImageEditorPrivate *) gp_image_editor_get_instance_private (image_editor))
@@ -265,7 +267,10 @@ on_canvas_draw_overlay (GtkWidget *widget,
     cairo_save (cr);
     cairo_set_source_rgba (cr, priv->fg_color.red, priv->fg_color.green, priv->fg_color.blue, priv->fg_color.alpha);
 
-    gp_tool_draw (priv->tool, cr);
+    if (priv->tool != NULL)
+    {
+        gp_tool_draw (priv->tool, cr);
+    }
 
     cairo_restore (cr);
 }
@@ -285,6 +290,12 @@ on_canvas_motion_notify_event (GtkWidget      *widget,
 }
 
 static void
+on_tool_changed (GPToolManager *manager, gpointer user_data)
+{
+    gp_image_editor_set_tool (GP_IMAGE_EDITOR (user_data), gp_tool_manager_get_active_tool (manager));
+}
+
+static void
 gp_image_editor_init (GPImageEditor *self)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (self);
@@ -292,6 +303,8 @@ gp_image_editor_init (GPImageEditor *self)
     gtk_widget_init_template (GTK_WIDGET (self));
 
     priv->tool = NULL;
+    priv->tool_manager = g_object_ref (gp_tool_manager_default ());
+    g_signal_connect (priv->tool_manager, "active-tool-changed", on_tool_changed, self);
 
     priv->bg_color = bg_color; // todo set from application
 

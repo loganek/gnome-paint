@@ -19,6 +19,8 @@
 #ifndef GP_TOOL_MANAGER_H_
 #define GP_TOOL_MANAGER_H_
 
+#include "gp-tool.h"
+
 #include <glib-object.h>
 
 G_BEGIN_DECLS
@@ -26,7 +28,12 @@ G_BEGIN_DECLS
 #define GP_TYPE_TOOL_MANAGER (gp_tool_manager_get_type ())
 G_DECLARE_FINAL_TYPE (GPToolManager, gp_tool_manager, GP, TOOL_MANAGER, GObject)
 
-GPToolManager * gp_tool_manager_new (void);
+GPToolManager * gp_tool_manager_default (void);
+
+void gp_tool_manager_add_tool (GPToolManager *tool_manager, GPTool *tool);
+
+GPTool * gp_tool_manager_get_active_tool (GPToolManager *tool_manager);
+void gp_tool_manager_set_active_tool (GPToolManager *tool_manager, GPTool *tool);
 
 G_END_DECLS
 

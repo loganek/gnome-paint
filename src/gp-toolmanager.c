@@ -20,6 +20,11 @@
 #include "gp-tool.h"
 #include "gp-marshal.h"
 
+// Tools
+#include "gp-linetool.h"
+#include "gp-rectangletool.h"
+#include "gp-rectangleselectiontool.h"
+
 /* Signals */
 enum
 {
@@ -78,6 +83,14 @@ gp_tool_manager_class_init (GPToolManagerClass *klass)
 
 }
 
+void
+gp_tool_manager_create_default_tool_set (GPToolManager *self)
+{
+    gp_tool_manager_add_tool (self, gp_line_tool_create ());
+    gp_tool_manager_add_tool (self, gp_rectangle_tool_create ());
+    gp_tool_manager_add_tool (self, gp_rectangle_selection_tool_create ());
+}
+
 static void
 gp_tool_manager_init (GPToolManager *self)
 {
@@ -92,6 +105,11 @@ void gp_tool_manager_add_tool (GPToolManager *tool_manager, GPTool *tool)
     tool_manager->tools = g_slist_append (tool_manager->tools, g_object_ref (tool));
 
     g_signal_emit (tool_manager, gp_tool_manager_signals[TOOL_ADDED], 0, tool, NULL);
+
+    if (tool_manager->active_tool == NULL)
+    {
+        gp_tool_manager_set_active_tool (tool_manager, tool);
+    }
 }
 
 GPTool * gp_tool_manager_get_active_tool (GPToolManager *tool_manager)

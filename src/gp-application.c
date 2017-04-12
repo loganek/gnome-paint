@@ -23,6 +23,7 @@
 
 #include "gp-widget-init.h"
 #include "gp-help-commands.h"
+#include "gp-toolmanager.h"
 
 #include <glib/gi18n.h>
 
@@ -67,6 +68,9 @@ gp_application_activate (GApplication *application)
     GtkWidget *window;
 
     window = gp_window_new (GTK_APPLICATION (application));
+
+    gp_tool_manager_create_default_tool_set (gp_tool_manager_default ());
+
     gtk_widget_show (window);
 }
 

@@ -60,7 +60,6 @@ typedef struct
     GPResizeMode resize_mode;
     GtkEventBox *resizer;
     GPDrawingArea *canvas;
-    GPToolManager *tool_manager;
 } GPImageEditorPrivate;
 
 #define GP_IMAGE_EDITOR_PRIV(image_editor) ((GPImageEditorPrivate *) gp_image_editor_get_instance_private (image_editor))
@@ -284,6 +283,8 @@ on_canvas_motion_notify_event (GtkWidget      *widget,
 
     update_canvas_cursor (priv, event->x, event->y);
 
+    g_return_val_if_fail (priv->tool != NULL, TRUE);
+
     gp_tool_move (priv->tool, event);
 
     return TRUE;
@@ -303,8 +304,7 @@ gp_image_editor_init (GPImageEditor *self)
     gtk_widget_init_template (GTK_WIDGET (self));
 
     priv->tool = NULL;
-    priv->tool_manager = g_object_ref (gp_tool_manager_default ());
-    g_signal_connect (priv->tool_manager, "active-tool-changed", on_tool_changed, self);
+    g_signal_connect (gp_tool_manager_default (), "active-tool-changed", G_CALLBACK (on_tool_changed), self);
 
     priv->bg_color = bg_color; // todo set from application
 

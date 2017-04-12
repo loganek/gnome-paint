@@ -27,7 +27,7 @@ int main(int   argc,
 {
     GtkApplication *application;
     int status;
-#define LOCALEDIR "XXX" //TODO
+
     bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
     bind_textdomain_codeset (PACKAGE_TARNAME, "UTF-8");
     textdomain (GETTEXT_PACKAGE);

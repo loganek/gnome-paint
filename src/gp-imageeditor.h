@@ -30,14 +30,14 @@ G_DECLARE_FINAL_TYPE (GPImageEditor, gp_image_editor, GP, IMAGE_EDITOR, GtkFixed
 
 GtkWidget* gp_image_editor_new (void);
 
-void gp_image_editor_set_tool (GPImageEditor *self, GPTool *tool);
-
 void gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color);
 
 gboolean gp_image_editor_get_selection (GPImageEditor *image_editor, GdkPixbuf **out_pixbuf);
 
 void gp_image_editor_set_pixbuf (GPImageEditor *image_editor, GdkPixbuf *pixbuf);
 GdkPixbuf * gp_image_editor_get_pixbuf (GPImageEditor *image_editor);
+
+void gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool);
 
 void gp_image_editor_clear_selection (GPImageEditor *image_editor);
 

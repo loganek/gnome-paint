@@ -35,6 +35,8 @@ void gp_tool_manager_add_tool (GPToolManager *tool_manager, GPTool *tool);
 GPTool * gp_tool_manager_get_active_tool (GPToolManager *tool_manager);
 void gp_tool_manager_set_active_tool (GPToolManager *tool_manager, GPTool *tool);
 
+void gp_tool_manager_create_default_tool_set (GPToolManager *self);
+
 G_END_DECLS
 
 #endif /* GP_APPLICATION_H_ */

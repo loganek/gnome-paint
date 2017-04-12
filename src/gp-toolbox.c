@@ -19,11 +19,6 @@
 #include "gp-toolbox.h"
 #include "gp-toolmanager.h"
 
-
-#include "gp-linetool.h" // TODO REMOVE
-#include "gp-rectangletool.h" // TODO REMOVE
-#include "gp-rectangleselectiontool.h" // TODO REMOVE
-
 #include <glib/gi18n.h>
 
 struct _GPToolBox
@@ -68,7 +63,7 @@ gp_tool_box_tool_changed (GPToolManager *tool_manager, gpointer user_data)
         if (active_tool == tool)
         {
             priv->set_active_tts = TRUE;
-            gtk_toggle_button_set_active (GTK_RADIO_BUTTON (start->data), TRUE);
+            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (start->data), TRUE);
             priv->set_active_tts = FALSE;
             return;
         }
@@ -129,14 +124,8 @@ gp_tool_box_init (GPToolBox *tool_box)
 
     priv->tool_manager = g_object_ref (gp_tool_manager_default ());
 
-    g_signal_connect (priv->tool_manager, "tool-added", gp_tool_box_tool_added, tool_box);
-    g_signal_connect (priv->tool_manager, "active-tool-changed", gp_tool_box_tool_changed, tool_box);
-
-    // TODO move somewhere else
-    gp_tool_manager_add_tool (priv->tool_manager, gp_line_tool_create ());
-    gp_tool_manager_add_tool (priv->tool_manager, gp_rectangle_tool_create ());
-    gp_tool_manager_add_tool (priv->tool_manager, gp_rectangle_selection_tool_create ());
-
+    g_signal_connect (priv->tool_manager, "tool-added", G_CALLBACK (gp_tool_box_tool_added), tool_box);
+    g_signal_connect (priv->tool_manager, "active-tool-changed", G_CALLBACK (gp_tool_box_tool_changed), tool_box);
 }
 
 GtkWidget *

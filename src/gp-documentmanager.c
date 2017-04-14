@@ -25,7 +25,7 @@
 enum
 {
     ACTIVE_DOCUMENT_CHANGED,
-    DOCUMENT_CHANGED,
+    DOCUMENT_STATUS_CHANGED,
     LAST_SIGNAL
 };
 
@@ -34,19 +34,19 @@ static guint gp_document_manager_signals[LAST_SIGNAL] = { 0 };
 struct _GPDocumentManager
 {
     /*< private >*/
-    GtkApplication parent_instance;
+    GObject parent_instance;
 
     GSList *documents;
-    GPDocumentInfo *active_document;
+    GPDocument *active_document;
 };
 
 G_DEFINE_TYPE (GPDocumentManager, gp_document_manager, G_TYPE_OBJECT)
 
-static void on_document_changed (GPDocumentInfo *document, gpointer user_data)
+static void on_document_dirty_changed (GPDocument *document, gpointer user_data)
 {
     GPDocumentManager *manager = GP_DOCUMENT_MANAGER (user_data);
 
-    g_signal_emit (manager, gp_document_manager_signals[DOCUMENT_CHANGED], 0, document, NULL);
+    g_signal_emit (manager, gp_document_manager_signals[DOCUMENT_STATUS_CHANGED], 0, document, NULL);
 }
 
 static void
@@ -68,15 +68,15 @@ gp_document_manager_class_init (GPDocumentManagerClass *klass)
 {
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
-    gp_document_manager_signals[DOCUMENT_CHANGED] =
-            g_signal_new ("document-changed",
+    gp_document_manager_signals[DOCUMENT_STATUS_CHANGED] =
+            g_signal_new ("document-status-changed",
                           G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
                           G_SIGNAL_RUN_FIRST,
                           0,
                           NULL,
                           NULL,
                           gp_VOID__BOXED,
-                          G_TYPE_NONE, 1, GP_TYPE_DOCUMENT_INFO);
+                          G_TYPE_NONE, 1, GP_TYPE_DOCUMENT);
 
     gp_document_manager_signals[ACTIVE_DOCUMENT_CHANGED] =
             g_signal_new ("active-document-changed",
@@ -91,7 +91,7 @@ gp_document_manager_class_init (GPDocumentManagerClass *klass)
     gobject_class->finalize = gp_document_manager_finalize;
 }
 
-GPDocumentInfo *
+GPDocument *
 gp_document_manager_get_active_document (GPDocumentManager *manager)
 {
     return manager->active_document;
@@ -110,10 +110,10 @@ gp_document_manager_get_default (void)
     return manager;
 }
 
-GPDocumentInfo*
-gp_document_manager_create_document (GPDocumentManager *manager)
+GPDocument*
+gp_document_manager_create_new_document (GPDocumentManager *manager)
 {
-    GPDocumentInfo *document = GP_DOCUMENT_INFO (g_object_new (GP_TYPE_DOCUMENT_INFO, NULL));
+    GPDocument *document = GP_DOCUMENT (g_object_new (GP_TYPE_DOCUMENT, NULL));
 
     if (manager->documents == NULL)
     {
@@ -122,15 +122,28 @@ gp_document_manager_create_document (GPDocumentManager *manager)
 
     manager->documents = g_slist_append (manager->documents, document);
 
-    g_signal_connect(G_OBJECT (document), "changed",
-                     G_CALLBACK (on_document_changed),
+    g_signal_connect(G_OBJECT (document), "status-changed",
+                     G_CALLBACK (on_document_dirty_changed),
                      manager);
 
     return document;
 }
 
+GPDocument*
+gp_document_manager_create_document_from_file (GPDocumentManager *manager, GFile *file)
+{
+    GPDocument *document = gp_document_manager_create_new_document (manager);
+    GError *error = NULL;
+
+    g_return_val_if_fail (file != NULL, document);
+
+    gp_document_load_file (document, g_file_get_path (file), &error); // TODO error handling
+
+    return document;
+}
+
 void
-gp_document_manager_set_active_document (GPDocumentManager *manager, GPDocumentInfo *document)
+gp_document_manager_set_active_document (GPDocumentManager *manager, GPDocument *document)
 {
     if (document == manager->active_document)
     {

@@ -11,21 +11,24 @@ gnome_paint_SOURCES =         \
 	gp-colorbutton.c      \
 	gp-colorselectorbox.c \
 	gp-dialogutils.c      \
-	gp-documentinfo.c     \
+	gp-document.c	      \
 	gp-documentmanager.c  \
 	gp-drawingarea.c      \
 	gp-headerbar.c        \
+	gp-help-commands.c    \
 	gp-imageeditor.c      \
 	gp-linetool.c         \
 	gp-main.c             \
 	gp-marshal.c          \
-	gp-toolproperty.c     \
 	gp-rectangleselectiontool.c \
 	gp-rectangletool.c    \
 	gp-selectiontool.c    \
 	gp-sizetoolproperty.c \
-	gp-tool.c             \
+	gp-toolproperty.c     \
 	gp-toolbox.c          \
+	gp-tool.c             \
+	gp-toolmanager.c      \
+	gp-widget-init.c      \
 	gp-window.c           \
 	gp-window-commands.c
 

@@ -19,8 +19,9 @@
 #ifndef GP_DOCUMENT_MANAGER_H_
 #define GP_DOCUMENT_MANAGER_H_
 
-#include "gp-documentinfo.h"
+#include "gp-document.h"
 
+#include <gio/gio.h>
 #include <glib-object.h>
 
 G_BEGIN_DECLS
@@ -30,11 +31,12 @@ G_DECLARE_FINAL_TYPE (GPDocumentManager, gp_document_manager, GP, DOCUMENT_MANAG
 
 GPDocumentManager * gp_document_manager_get_default (void);
 
-GPDocumentInfo* gp_document_manager_create_document (GPDocumentManager *manager);
+GPDocument* gp_document_manager_create_new_document (GPDocumentManager *manager);
+GPDocument* gp_document_manager_create_document_from_file (GPDocumentManager *manager, GFile *file);
 
-GPDocumentInfo * gp_document_manager_get_active_document (GPDocumentManager *manager);
+GPDocument* gp_document_manager_get_active_document (GPDocumentManager *manager);
 
-void gp_document_manager_set_active_document (GPDocumentManager *manager, GPDocumentInfo *document);
+void gp_document_manager_set_active_document (GPDocumentManager *manager, GPDocument *document);
 
 G_END_DECLS
 

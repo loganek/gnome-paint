@@ -21,27 +21,23 @@
 #include "gp-documentmanager.h"
 #include "gp-window-commands.h"
 #include "gp-window.h"
-#include "gp-documentinfo.h"
 #include "gp-dialogutils.h"
 
 static void
-save_file_cmd (GPWindow *window, GPDocumentInfo *document, gboolean use_old_name)
+save_file_cmd (GPWindow *window, GPDocument *document, gboolean use_old_name)
 {
-    GPImageEditor *editor = gp_window_get_active_image_editor (window);
     gchar* filename = NULL;
     GError *error = NULL;
 
-    gp_document_info_set_pixbuf (document, gp_image_editor_get_pixbuf (editor));
-
     if (use_old_name == FALSE)
     {
-        gchar *suggested_filename = gp_document_info_get_filename (document);
+        gchar *suggested_filename = gp_document_get_filename (document);
         gp_dialog_utils_show_image_save_dialog (GTK_WINDOW (window), suggested_filename, &filename);
         g_free (suggested_filename);
     }
     else
     {
-        filename = gp_document_info_get_filename (document);
+        filename = gp_document_get_filename (document);
         g_return_if_fail (filename != NULL);
     }
 
@@ -50,7 +46,7 @@ save_file_cmd (GPWindow *window, GPDocumentInfo *document, gboolean use_old_name
         return;
     }
 
-    gp_document_info_save_file (document, filename, &error);
+    gp_document_save_file (document, filename, &error);
 
     if (error != NULL)
     {
@@ -69,7 +65,7 @@ void _gp_cmd_save_as (GSimpleAction *action,
                       gpointer       user_data)
 {
     GPDocumentManager *document_manager = gp_document_manager_get_default ();
-    GPDocumentInfo *active_document = gp_document_manager_get_active_document (document_manager);
+    GPDocument *active_document = gp_document_manager_get_active_document (document_manager);
 
     save_file_cmd (GP_WINDOW (user_data), active_document, FALSE);
 }
@@ -79,9 +75,9 @@ void _gp_cmd_save (GSimpleAction *action,
                    gpointer       user_data)
 {
     GPDocumentManager *document_manager = gp_document_manager_get_default ();
-    GPDocumentInfo *active_document = gp_document_manager_get_active_document (document_manager);
+    GPDocument *active_document = gp_document_manager_get_active_document (document_manager);
 
-    save_file_cmd (GP_WINDOW (user_data), active_document, gp_document_info_has_custom_name (active_document));
+    save_file_cmd (GP_WINDOW (user_data), active_document, gp_document_has_custom_name (active_document));
 }
 
 void _gp_cmd_cut (GSimpleAction *action,

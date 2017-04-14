@@ -26,8 +26,16 @@ G_BEGIN_DECLS
 #define GP_TYPE_DOCUMENT (gp_document_get_type ())
 G_DECLARE_FINAL_TYPE (GPDocument, gp_document, GP, DOCUMENT, GObject)
 
-GPDocument * gp_document_new ();
+void gp_document_set_is_dirty (GPDocument *document, gboolean is_dirty);
+gboolean gp_document_get_is_dirty (GPDocument *document);
+
+gchar* gp_document_get_filename (GPDocument *document);
+
+void gp_document_save_file (GPDocument*document, const gchar *filename, GError **error);
+void gp_document_load_file (GPDocument*document, const gchar *filename, GError **error);
+
+gboolean gp_document_has_custom_name (GPDocument *document);
 
 G_END_DECLS
 
-#endif /* GP_WINDOW_H_ */
+#endif /* GP_DOCUMENT_H_ */

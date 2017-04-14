@@ -22,7 +22,6 @@
 #include "gp-toolbox.h"
 #include "gp-colorselectorbox.h"
 #include "gp-headerbar.h"
-#include "gp-documentinfo.h"
 #include "gp-dialogutils.h"
 #include "gp-window-commands.h"
 
@@ -81,13 +80,31 @@ on_canvas_changed (GtkWidget *widget, gpointer user_data)
 }
 
 static void
-on_active_document_status_changed (GPDocumentManager *manager, gpointer user_data)
+on_document_status_changed (GPDocumentManager *manager, GPDocument *document, gpointer user_data)
 {
     GPHeaderBar *header_bar = GP_HEADER_BAR (user_data);
-    GPDocumentInfo *active_document = gp_document_manager_get_active_document (manager);
-    gchar *filename  = gp_document_info_get_filename (active_document);
+    GPDocument *active_document = gp_document_manager_get_active_document (manager);
+    gchar *filename = NULL;
 
+    if (active_document != document)
+    {
+        return;
+    }
+
+    filename = gp_document_get_filename (active_document);
     gp_header_bar_set_filename (header_bar, filename, FALSE);
+
+    g_free (filename);
+}
+
+static void
+on_active_document_changed (GPDocumentManager *manager, gpointer user_data)
+{
+    GPHeaderBar *header_bar = GP_HEADER_BAR (user_data);
+    GPDocument *active_document = gp_document_manager_get_active_document (manager);
+    gchar *filename = gp_document_get_filename (active_document);
+
+    gp_header_bar_set_filename (header_bar, filename, gp_document_get_is_dirty (active_document));
 
     g_free (filename);
 }
@@ -119,10 +136,10 @@ gp_window_init (GPWindow *window)
     priv = gp_window_get_instance_private (window);
 
     document_manager = gp_document_manager_get_default ();
-    gp_document_manager_create_document (document_manager);
 
     g_signal_connect (priv->color_selector_box, "color-changed", G_CALLBACK (on_color_changed), priv->image_editor);
-    g_signal_connect (document_manager, "active-document-status-changed", G_CALLBACK (on_active_document_status_changed), priv->header_bar);
+    g_signal_connect (document_manager, "document-status-changed", G_CALLBACK (on_document_status_changed), priv->header_bar);
+    g_signal_connect (document_manager, "active-document-changed", G_CALLBACK (on_active_document_changed), priv->header_bar);
     g_signal_connect (priv->image_editor, "canvas-changed", G_CALLBACK (on_canvas_changed), window);
 
     GdkRGBA color;

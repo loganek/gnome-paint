@@ -37,15 +37,6 @@ enum
 
 static guint gp_image_editor_signals[LAST_SIGNAL] = { 0 };
 
-typedef enum
-{
-    GP_RESIZE_MODE_NONE = 0,
-    GP_RESIZE_MODE_X = 1,
-    GP_RESIZE_MODE_Y = 2,
-    GP_RESIZE_MODE_XY = 3,
-    GP_RESIZE_MODE_ENABLED = 8
-} GPResizeMode;
-
 struct _GPImageEditor
 {
     /*< private >*/
@@ -57,7 +48,6 @@ typedef struct
     GPTool *tool;
     GdkRGBA fg_color;
     GdkRGBA bg_color;
-    GPResizeMode resize_mode;
     GtkEventBox *resizer;
     GPDrawingArea *canvas;
 } GPImageEditorPrivate;
@@ -65,23 +55,6 @@ typedef struct
 #define GP_IMAGE_EDITOR_PRIV(image_editor) ((GPImageEditorPrivate *) gp_image_editor_get_instance_private (image_editor))
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPImageEditor, gp_image_editor, GTK_TYPE_FIXED)
-
-static GPResizeMode
-calculate_resize_mode (GtkWidget *widget, gint pos_x, gint pos_y)
-{
-    GPResizeMode resize_mode = GP_RESIZE_MODE_NONE;
-
-    if (gtk_widget_get_allocated_width (widget) - RESIZE_MARGIN-1 < pos_x)
-    {
-        resize_mode |= GP_RESIZE_MODE_X;
-    }
-    if (gtk_widget_get_allocated_height (widget) - RESIZE_MARGIN-1 < pos_y)
-    {
-        resize_mode |= GP_RESIZE_MODE_Y;
-    }
-
-    return resize_mode;
-}
 
 static void
 update_tool_color (GPImageEditor *image_editor)
@@ -92,139 +65,6 @@ update_tool_color (GPImageEditor *image_editor)
 
     gp_tool_set_color (priv->tool, &priv->fg_color, &priv->bg_color);
 }
-
-static void
-update_canvas_cursor (GPImageEditorPrivate *priv, gdouble x, gdouble y)
-{
-    GdkCursor *cursor = NULL;
-
-    if (!GP_IS_SELECTION_TOOL (priv->tool))
-    {
-        goto cursor_region_none;
-    }
-
-    switch (gp_selection_tool_region_in_selection (GP_SELECTION_TOOL (priv->tool), x, y))
-    {
-    case GP_REGION_BL_CORNER:
-    case GP_REGION_TR_CORNER:
-        cursor = gdk_cursor_new_from_name (gdk_display_get_default(), "nesw-resize");
-        break;
-    case GP_REGION_BR_CORNER:
-    case GP_REGION_TL_CORNER:
-        cursor = gdk_cursor_new_from_name (gdk_display_get_default(), "nwse-resize");
-        break;
-    case GP_REGION_L_SIDE:
-    case GP_REGION_R_SIDE:
-        cursor = gdk_cursor_new_from_name (gdk_display_get_default(), "ew-resize");
-        break;
-    case GP_REGION_T_SIDE:
-    case GP_REGION_B_SIDE:
-        cursor = gdk_cursor_new_from_name (gdk_display_get_default(), "ns-resize");
-        break;
-    case GP_REGION_INSIDE:
-        cursor = gdk_cursor_new_for_display (gdk_display_get_default(), GDK_FLEUR);
-        break;
-    case GP_REGION_NONE:
-cursor_region_none:
-        cursor = gdk_cursor_new_for_display (gdk_display_get_default(), GDK_CROSSHAIR);
-        break;
-    default:
-        g_assert_not_reached ();
-    }
-
-    g_return_if_fail (cursor != NULL);
-
-    gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (priv->canvas)), cursor);
-}
-
-static gboolean
-on_resizer_button_press_event (GtkWidget      *widget,
-                               GdkEventButton *event,
-                               gpointer        user_data)
-{
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
-
-    priv->resize_mode = calculate_resize_mode (GTK_WIDGET (priv->resizer), event->x, event->y);
-
-    return TRUE;
-}
-
-static gboolean
-on_resizer_button_release_event (GtkWidget      *widget,
-                                 GdkEventButton *event,
-                                 gpointer        user_data)
-{
-    GPImageEditor *self = GP_IMAGE_EDITOR (user_data);
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (self);
-
-    if (priv->resize_mode)
-    {
-        gint new_x = priv->resize_mode & GP_RESIZE_MODE_X ? MAX(1, event->x) : gtk_widget_get_allocated_width (widget);
-        gint new_y = priv->resize_mode & GP_RESIZE_MODE_Y ? MAX(1, event->y) : gtk_widget_get_allocated_height (widget);
-
-        gtk_widget_set_size_request (GTK_WIDGET (widget), new_x, new_y);
-        priv->resize_mode = GP_RESIZE_MODE_NONE;
-    }
-
-    return TRUE;
-}
-
-static gboolean
-on_resizer_motion_notify_event (GtkWidget      *widget,
-                                GdkEventMotion *event,
-                                gpointer        user_data)
-{
-    GPImageEditor *self = GP_IMAGE_EDITOR (user_data);
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (self);
-
-    GdkCursorType cursor_type = GDK_LAST_CURSOR;
-
-    if (priv->resize_mode & GP_RESIZE_MODE_ENABLED)
-    {
-        GPResizeMode resize_mode = calculate_resize_mode (GTK_WIDGET (priv->resizer), event->x, event->y);
-
-        switch (resize_mode)
-        {
-        case GP_RESIZE_MODE_X:
-            cursor_type = GDK_RIGHT_SIDE;
-            break;
-        case GP_RESIZE_MODE_Y:
-            cursor_type = GDK_BOTTOM_SIDE;
-            break;
-        case GP_RESIZE_MODE_XY:
-            cursor_type = GDK_BOTTOM_RIGHT_CORNER;
-            break;
-        default:
-            g_assert_not_reached ();
-        }
-
-        gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (priv->resizer)),
-                               gdk_cursor_new_for_display (gdk_display_get_default(), cursor_type));
-    }
-
-    return FALSE;
-}
-
-static gboolean
-on_resizer_enter_notify_event (GtkWidget *widget,
-                               GdkEvent  *event,
-                               gpointer   user_data)
-{
-    GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data))->resize_mode |= GP_RESIZE_MODE_ENABLED;
-
-    return FALSE;
-}
-
-static gboolean
-on_resizer_leave_notify_event (GtkWidget *widget,
-                               GdkEvent  *event,
-                               gpointer   user_data)
-{
-    GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data))->resize_mode &= ~GP_RESIZE_MODE_ENABLED;
-
-    return TRUE;
-}
-
 
 static gboolean
 on_canvas_button_press_event (GtkWidget      *widget,
@@ -281,8 +121,6 @@ on_canvas_motion_notify_event (GtkWidget      *widget,
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
 
-    update_canvas_cursor (priv, event->x, event->y);
-
     g_return_val_if_fail (priv->tool != NULL, TRUE);
 
     gp_tool_move (priv->tool, event);
@@ -320,6 +158,8 @@ gp_image_editor_init (GPImageEditor *self)
                            GDK_BUTTON_PRESS_MASK
                            | GDK_BUTTON_RELEASE_MASK
                            | GDK_POINTER_MOTION_MASK);
+
+    gtk_widget_set_size_request (GTK_WIDGET (priv->resizer), 300, 300);
 }
 
 static void
@@ -333,16 +173,6 @@ gp_image_editor_class_init (GPImageEditorClass *klass)
                                                   resizer);
     gtk_widget_class_bind_template_child_private (widget_class, GPImageEditor,
                                                   canvas);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_resizer_button_press_event);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_resizer_button_release_event);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_resizer_motion_notify_event);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_resizer_enter_notify_event);
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_resizer_leave_notify_event);
     gtk_widget_class_bind_template_callback (widget_class,
                                              on_canvas_button_press_event);
     gtk_widget_class_bind_template_callback (widget_class,

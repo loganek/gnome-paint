@@ -111,33 +111,49 @@ gp_document_manager_get_default (void)
 }
 
 GPDocument*
-gp_document_manager_create_new_document (GPDocumentManager *manager)
+gp_document_manager_create_new_document (GPDocumentManager *manager, gint width, gint height)
 {
-    GPDocument *document = GP_DOCUMENT (g_object_new (GP_TYPE_DOCUMENT, NULL));
+    GPDocument *document = gp_document_create_empty (width, height);
+    gboolean set_active = FALSE;
 
     if (manager->documents == NULL)
     {
-        gp_document_manager_set_active_document (manager, document);
+        set_active = TRUE;
     }
 
     manager->documents = g_slist_append (manager->documents, document);
 
-    g_signal_connect(G_OBJECT (document), "status-changed",
-                     G_CALLBACK (on_document_dirty_changed),
-                     manager);
+    if (set_active)
+    {
+        gp_document_manager_set_active_document (manager, document);
+    }
 
     return document;
 }
 
+// TODO almost copy paste from create_new_document ()
 GPDocument*
 gp_document_manager_create_document_from_file (GPDocumentManager *manager, GFile *file)
 {
-    GPDocument *document = gp_document_manager_create_new_document (manager);
     GError *error = NULL;
+    GPDocument *document;
+    gboolean set_active = FALSE;
 
-    g_return_val_if_fail (file != NULL, document);
+    g_assert (file);
 
-    gp_document_load_file (document, g_file_get_path (file), &error); // TODO error handling
+    document = gp_document_create_from_file (g_file_get_path (file), &error); // TODO error handling
+
+    if (manager->documents == NULL)
+    {
+        set_active = TRUE;
+    }
+
+    manager->documents = g_slist_append (manager->documents, document);
+
+    if (set_active)
+    {
+        gp_document_manager_set_active_document (manager, document);
+    }
 
     return document;
 }
@@ -150,7 +166,7 @@ gp_document_manager_set_active_document (GPDocumentManager *manager, GPDocument 
         return;
     }
 
-    g_return_if_fail (g_slist_find (manager->documents, document) == NULL);
+    g_return_if_fail (g_slist_find (manager->documents, document) != NULL);
 
     manager->active_document = document;
     g_signal_emit (manager, gp_document_manager_signals[ACTIVE_DOCUMENT_CHANGED], 0);

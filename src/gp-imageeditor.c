@@ -289,3 +289,17 @@ gp_image_editor_get_pixbuf (GPImageEditor *image_editor)
 
     return pixbuf;
 }
+
+void
+gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document)
+{
+    // TODO error handling
+    cairo_surface_t *surface = gp_document_get_surface (document);
+    GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface, 0, 0,
+                                                     cairo_image_surface_get_width (surface),
+                                                     cairo_image_surface_get_height (surface));
+
+    gp_image_editor_set_pixbuf (image_editor, pixbuf);
+
+    cairo_surface_destroy (surface);
+}

@@ -20,6 +20,7 @@
 #define GP_IMAGE_EDITOR_H_
 
 #include "gp-tool.h"
+#include "gp-document.h"
 
 #include <gtk/gtk.h>
 
@@ -40,6 +41,8 @@ GdkPixbuf * gp_image_editor_get_pixbuf (GPImageEditor *image_editor);
 void gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool);
 
 void gp_image_editor_clear_selection (GPImageEditor *image_editor);
+
+void gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document);
 
 G_END_DECLS
 

@@ -145,10 +145,11 @@ gp_document_save_file (GPDocument *document, const gchar *filename, GError **err
     gp_document_set_filename (document, filename);
 }
 
-void
-gp_document_load_file (GPDocument *document, const gchar *filename, GError **error)
+static cairo_surface_t *
+gp_document_load_surface_from_file (const gchar *filename, GError **error)
 {
     GdkPixbuf *pixbuf = NULL;
+    cairo_surface_t *surface = NULL;
 
     g_assert (error != NULL);
 
@@ -165,14 +166,56 @@ gp_document_load_file (GPDocument *document, const gchar *filename, GError **err
         goto cleanup;
     }
 
-    document->base_layer = gdk_cairo_surface_create_from_pixbuf (pixbuf, 1.0, NULL);
+    surface = gdk_cairo_surface_create_from_pixbuf (pixbuf, 1.0, NULL);
 
 cleanup:
     g_clear_object (&pixbuf);
+    return surface;
 }
 
 gboolean
 gp_document_has_custom_name (GPDocument *document)
 {
     return document->filename != NULL;
+}
+
+cairo_surface_t *
+gp_document_get_surface (GPDocument *document)
+{
+    return cairo_surface_reference (document->base_layer);
+}
+
+GPDocument *
+gp_document_create_empty (gint width, gint height)
+{
+    GPDocument *document = GP_DOCUMENT (g_object_new (GP_TYPE_DOCUMENT, NULL));
+
+    // TODO cairo_surface_status
+    document->base_layer = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, height);
+
+    return document;
+}
+
+GPDocument *
+gp_document_create_from_file (const gchar *filename, GError **error)
+{
+    GPDocument *document = NULL;
+    cairo_surface_t *surface = NULL;
+// TODO what if error and surface != null?
+    surface = gp_document_load_surface_from_file (filename, error);
+    if (*error)
+    {
+        goto cleanup;
+    }
+    if (surface == NULL)
+    {
+        //*error = g_error_new () todo new quark for gnome paint
+        goto cleanup;
+    }
+
+    document = GP_DOCUMENT (g_object_new (GP_TYPE_DOCUMENT, NULL));
+    document->base_layer = surface;
+
+cleanup:
+    return document;
 }

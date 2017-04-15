@@ -19,7 +19,7 @@
 #ifndef GP_DOCUMENT_H_
 #define GP_DOCUMENT_H_
 
-#include <glib-object.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
@@ -32,9 +32,13 @@ gboolean gp_document_get_is_dirty (GPDocument *document);
 gchar* gp_document_get_filename (GPDocument *document);
 
 void gp_document_save_file (GPDocument*document, const gchar *filename, GError **error);
-void gp_document_load_file (GPDocument*document, const gchar *filename, GError **error);
 
 gboolean gp_document_has_custom_name (GPDocument *document);
+
+cairo_surface_t * gp_document_get_surface (GPDocument *document);
+
+GPDocument * gp_document_create_empty (gint width, gint height);
+GPDocument * gp_document_create_from_file (const gchar *filename, GError **error);
 
 G_END_DECLS
 

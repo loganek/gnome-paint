@@ -83,7 +83,7 @@ gp_application_activate (GApplication *application)
     }
     else
     {
-        gp_document_manager_create_new_document (document_manager);
+        gp_document_manager_create_new_document (document_manager, 240, 120); // TODO from parameters
     }
 
     gtk_widget_show (window);

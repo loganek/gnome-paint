@@ -100,11 +100,12 @@ on_document_status_changed (GPDocumentManager *manager, GPDocument *document, gp
 static void
 on_active_document_changed (GPDocumentManager *manager, gpointer user_data)
 {
-    GPHeaderBar *header_bar = GP_HEADER_BAR (user_data);
+    GPWindowPrivate *priv = gp_window_get_instance_private (GP_WINDOW (user_data));
     GPDocument *active_document = gp_document_manager_get_active_document (manager);
     gchar *filename = gp_document_get_filename (active_document);
 
-    gp_header_bar_set_filename (header_bar, filename, gp_document_get_is_dirty (active_document));
+    gp_header_bar_set_filename (priv->header_bar, filename, gp_document_get_is_dirty (active_document));
+    gp_image_editor_set_document (priv->image_editor, active_document);
 
     g_free (filename);
 }
@@ -139,7 +140,7 @@ gp_window_init (GPWindow *window)
 
     g_signal_connect (priv->color_selector_box, "color-changed", G_CALLBACK (on_color_changed), priv->image_editor);
     g_signal_connect (document_manager, "document-status-changed", G_CALLBACK (on_document_status_changed), priv->header_bar);
-    g_signal_connect (document_manager, "active-document-changed", G_CALLBACK (on_active_document_changed), priv->header_bar);
+    g_signal_connect (document_manager, "active-document-changed", G_CALLBACK (on_active_document_changed), window);
     g_signal_connect (priv->image_editor, "canvas-changed", G_CALLBACK (on_canvas_changed), window);
 
     GdkRGBA color;

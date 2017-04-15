@@ -31,7 +31,7 @@ G_DECLARE_FINAL_TYPE (GPDocumentManager, gp_document_manager, GP, DOCUMENT_MANAG
 
 GPDocumentManager * gp_document_manager_get_default (void);
 
-GPDocument* gp_document_manager_create_new_document (GPDocumentManager *manager);
+GPDocument* gp_document_manager_create_new_document (GPDocumentManager *manager, gint width, gint height);
 GPDocument* gp_document_manager_create_document_from_file (GPDocumentManager *manager, GFile *file);
 
 GPDocument* gp_document_manager_get_active_document (GPDocumentManager *manager);

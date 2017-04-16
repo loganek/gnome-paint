@@ -9,6 +9,7 @@ gnome_paint_SOURCES =         \
 	gp-application.c      \
 	gp-basetool.c         \
 	gp-colorbutton.c      \
+	gp-colormanager.c     \
 	gp-colorselectorbox.c \
 	gp-dialogutils.c      \
 	gp-document.c	      \

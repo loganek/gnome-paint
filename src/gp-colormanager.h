@@ -1,4 +1,4 @@
-/* gp-toolmanager.h
+/* gp-colormanager.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,27 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_TOOL_MANAGER_H_
-#define GP_TOOL_MANAGER_H_
+#ifndef GP_COLOR_MANAGER_H_
+#define GP_COLOR_MANAGER_H_
 
-#include "gp-tool.h"
-
-#include <glib-object.h>
+#include <gdk/gdk.h>
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_TOOL_MANAGER (gp_tool_manager_get_type ())
-G_DECLARE_FINAL_TYPE (GPToolManager, gp_tool_manager, GP, TOOL_MANAGER, GObject)
+#define GP_TYPE_COLOR_MANAGER (gp_color_manager_get_type ())
+G_DECLARE_FINAL_TYPE (GPColorManager, gp_color_manager, GP, COLORL_MANAGER, GObject)
 
-GPToolManager * gp_tool_manager_default (void);
+GPColorManager * gp_color_manager_default (void);
 
-void gp_tool_manager_add_tool (GPToolManager *tool_manager, GPTool *tool);
-
-GPTool * gp_tool_manager_get_active_tool (GPToolManager *tool_manager);
-void gp_tool_manager_set_active_tool (GPToolManager *tool_manager, GPTool *tool);
-
-void gp_tool_manager_create_default_tool_set (GPToolManager *self);
+void gp_color_manager_get_color (const GPColorManager *color_manager, GdkRGBA *fg_color, GdkRGBA *bg_color);
+void gp_color_manager_set_color (GPColorManager *color_manager, const GdkRGBA *fg_color, const GdkRGBA *bg_color);
 
 G_END_DECLS
 
-#endif /* GP_TOOL_MANAGER_H_ */
+#endif /* GP_COLOR_MANAGER_H_ */

@@ -23,6 +23,8 @@
 #include <glib/gi18n.h>
 #include <gdk/gdk.h>
 
+#define GP_DEFAULT_DOCUMENT_BG_COLOR ((GdkRGBA) {1.0, 1.0, 1.0, 1.0})
+
 /* Signals */
 enum
 {
@@ -189,9 +191,17 @@ GPDocument *
 gp_document_create_empty (gint width, gint height)
 {
     GPDocument *document = GP_DOCUMENT (g_object_new (GP_TYPE_DOCUMENT, NULL));
+    cairo_t *cr = NULL;
 
     // TODO cairo_surface_status
     document->base_layer = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, height);
+
+    // TODO cairo-related stuff somewhere else...
+    cr = cairo_create (document->base_layer);
+    cairo_set_source_rgb (cr, GP_DEFAULT_DOCUMENT_BG_COLOR.red, GP_DEFAULT_DOCUMENT_BG_COLOR.green, GP_DEFAULT_DOCUMENT_BG_COLOR.green);
+    cairo_rectangle (cr, 0.0, 0.0, width, height);
+    cairo_paint (cr);
+    cairo_destroy (cr);
 
     return document;
 }

@@ -20,6 +20,8 @@
 
 #include "gp-colormanager.h"
 
+#define GP_DEFAULT_FG_COLOR ((GdkRGBA) {0.0, 0.0, 0.0, 1.0})
+#define GP_DEFAULT_BG_COLOR ((GdkRGBA) {1.0, 1.0, 1.0, 1.0})
 
 /* Signals */
 enum
@@ -49,6 +51,8 @@ gp_application_finalize (GObject *object)
 static void
 gp_color_manager_init (GPColorManager *self)
 {
+    self->bg_color = GP_DEFAULT_BG_COLOR;
+    self->fg_color = GP_DEFAULT_FG_COLOR;
 }
 
 static void

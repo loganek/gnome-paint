@@ -82,11 +82,11 @@ gp_color_selector_box_populate_default_colors (GPColorSelectorBox *color_selecto
         gtk_widget_show (btn);
         gtk_flow_box_insert (priv->flow_box, btn, i);
 
-        g_signal_connect(G_OBJECT(btn), "singleclicked",
-                         G_CALLBACK(on_gb_color_selector_box_color_changed),
+        g_signal_connect(G_OBJECT (btn), "singleclicked",
+                         G_CALLBACK (on_gb_color_selector_box_color_changed),
                          color_selector_box);
-        g_signal_connect(G_OBJECT(btn), "color-set",
-                         G_CALLBACK(on_gb_color_selector_box_color_changed),
+        g_signal_connect(G_OBJECT (btn), "color-set",
+                         G_CALLBACK (on_gb_color_selector_box_color_changed),
                          color_selector_box);
     }
 }

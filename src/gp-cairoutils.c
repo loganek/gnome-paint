@@ -1,4 +1,4 @@
-/* gp-rectangletool.h
+/* gp-cairoutils.c
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,18 +16,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_RECTANGLE_TOOL_H_
-#define GP_RECTANGLE_TOOL_H_
+#include "gp-cairoutils.h"
 
-#include "gp-shapetool.h"
+GdkRectangle
+gp_cairo_stroke_get_bbox (cairo_t *cairo_context)
+{
+    gdouble x1, x2, y1, y2;
 
-G_BEGIN_DECLS
+    cairo_stroke_extents (cairo_context, &x1, &y1, &x2, &y2);
 
-#define GP_TYPE_RECTANGLE_TOOL (gp_rectangle_tool_get_type ())
-G_DECLARE_FINAL_TYPE (GPRectangleTool, gp_rectangle_tool, GP, RECTANGLE_TOOL, GPShapeTool)
+    return (GdkRectangle) {
+        (int) x1,
+        (int) y1,
+        (int) (x2 - x1),
+        (int) (y2 - y1)
+    };
+}
 
-GPTool* gp_rectangle_tool_create ();
-
-G_END_DECLS
-
-#endif /* GP_RECTANGLE_TOOL_H_ */
+void
+gp_cairo_surface_clear (cairo_surface_t *surface)
+{
+    cairo_t *cr = cairo_create (surface);
+    cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
+    cairo_paint (cr);
+}

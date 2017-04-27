@@ -7,7 +7,7 @@ gp-marshal.c: marshal.list gp-marshal.h
 
 gnome_paint_SOURCES =         \
 	gp-application.c      \
-	gp-basetool.c         \
+	gp-cairoutils.c       \
 	gp-colorbutton.c      \
 	gp-colormanager.c     \
 	gp-colorselectorbox.c \
@@ -24,6 +24,7 @@ gnome_paint_SOURCES =         \
 	gp-rectangleselectiontool.c \
 	gp-rectangletool.c    \
 	gp-selectiontool.c    \
+	gp-shapetool.c        \
 	gp-sizetoolproperty.c \
 	gp-toolproperty.c     \
 	gp-toolbox.c          \

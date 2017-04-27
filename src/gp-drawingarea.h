@@ -20,6 +20,7 @@
 #define GP_DRAWING_AREA_H_
 
 #include "gp-tool.h"
+#include "gp-document.h"
 
 #include <gtk/gtk.h>
 
@@ -30,9 +31,7 @@ G_DECLARE_FINAL_TYPE (GPDrawingArea, gp_drawing_area, GP, DRAWING_AREA, GtkDrawi
 
 GtkWidget* gp_drawing_area_new (void);
 
-cairo_surface_t* gp_drawing_area_get_surface (GPDrawingArea *drawing_area);
-
-void gp_drawing_area_load_from_pixbuf (GPDrawingArea *drawing_area, GdkPixbuf *pixbuf);
+void gp_drawing_area_set_document (GPDrawingArea *drawing_area, GPDocument *document);
 
 G_END_DECLS
 

@@ -63,7 +63,6 @@ add_accelerator (GtkApplication *app,
     gtk_application_set_accels_for_action (app, action_name, vaccels);
 }
 
-
 static void
 gp_application_activate (GApplication *application)
 {
@@ -83,7 +82,7 @@ gp_application_activate (GApplication *application)
     }
     else
     {
-        gp_document_manager_create_new_document (document_manager, 240, 120); // TODO from parameters
+        gp_document_manager_create_new_document (document_manager, 240, 120); // TODO 240 and 120 from parameters
     }
 
     gtk_widget_show (window);

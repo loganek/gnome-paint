@@ -1,4 +1,4 @@
-/* gp-basetool.h
+/* gp-cairoutils.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,31 +16,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_BASE_TOOL_H_
-#define GP_BASE_TOOL_H_
+#ifndef GP_CAIRO_UTILS_H_
+#define GP_CAIRO_UTILS_H_
 
-#include "gp-tool.h"
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_BASE_TOOL (gp_base_tool_get_type ())
-G_DECLARE_DERIVABLE_TYPE (GPBaseTool, gp_base_tool, GP, BASE_TOOL, GPTool)
+GdkRectangle gp_cairo_stroke_get_bbox (cairo_t *cairo_context);
 
-struct _GPBaseToolClass
-{
-    GPToolClass parent_class;
-
-    void (*draw_bbox) (GPBaseTool *tool,
-                       cairo_t *cairo_context);
-    void (*pre_button_release) (GPBaseTool *tool,
-                                GdkEventButton *event,
-                                cairo_t *cr);
-};
-
-GdkPoint gp_base_tool_get_start_point (GPBaseTool *tool);
-
-GdkPoint gp_base_tool_get_current_point (GPBaseTool *tool);
-
+void gp_cairo_surface_clear (cairo_surface_t *surface);
 G_END_DECLS
 
-#endif /* GP_BASE_TOOL_H_ */
+#endif /* GP_CAIRO_UTILS_H_ */

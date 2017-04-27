@@ -1,4 +1,4 @@
-/* gp-rectangletool.h
+/* gp-shapetool.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,18 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_RECTANGLE_TOOL_H_
-#define GP_RECTANGLE_TOOL_H_
+#ifndef GP_SHAPE_TOOL_H_
+#define GP_SHAPE_TOOL_H_
 
-#include "gp-shapetool.h"
+#include "gp-tool.h"
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_RECTANGLE_TOOL (gp_rectangle_tool_get_type ())
-G_DECLARE_FINAL_TYPE (GPRectangleTool, gp_rectangle_tool, GP, RECTANGLE_TOOL, GPShapeTool)
+#define GP_TYPE_SHAPE_TOOL (gp_shape_tool_get_type ())
+G_DECLARE_DERIVABLE_TYPE (GPShapeTool, gp_shape_tool, GP, SHAPE_TOOL, GPTool)
 
-GPTool* gp_rectangle_tool_create ();
+struct _GPShapeToolClass
+{
+    GPToolClass parent_class;
+
+    GdkRectangle (*draw_shape) (GPShapeTool *tool,
+                                cairo_t     *cairo_context);
+};
+
+GdkPoint gp_shape_tool_get_start_point (GPShapeTool *tool);
+GdkPoint gp_shape_tool_get_current_point (GPShapeTool *tool);
+GdkRectangle gp_shape_tool_get_bbox (GPShapeTool *tool);
 
 G_END_DECLS
 
-#endif /* GP_RECTANGLE_TOOL_H_ */
+#endif /* GP_SHAPE_TOOL_H_ */

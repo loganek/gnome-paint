@@ -202,10 +202,10 @@ gp_rectangle_selection_tool_button_press (GPTool *tool, GdkEventButton *event)
         if (prev_state == STATE_SELECTED)
         {
             GtkWidget *widget = gp_tool_get_canvas_widget (tool);
-            cairo_t *cairo_context = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
+            //cairo_t *cairo_context = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
 
-            move_region (selection_tool, cairo_context);
-            cairo_destroy (cairo_context);
+            //move_region (selection_tool, cairo_context);
+            //cairo_destroy (cairo_context);
         }
 
         selection_tool->start_x = selection_tool->base_x = event->x;
@@ -288,10 +288,10 @@ gp_rectangle_selection_tool_deactivate (GPTool *tool)
             && (selection_tool->base_x != selection_tool->start_x || selection_tool->base_y != selection_tool->start_y))
     {
         GtkWidget *widget = gp_tool_get_canvas_widget (tool);
-        cairo_t *cairo_context = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
+        //cairo_t *cairo_context = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
 
-        move_region (selection_tool, cairo_context);
-        cairo_destroy (cairo_context);
+        //move_region (selection_tool, cairo_context);
+        //cairo_destroy (cairo_context);
     }
 
     selection_tool->grabbed = FALSE;
@@ -322,7 +322,7 @@ static void
 gp_rectangle_selection_tool_clear (GPSelectionTool *self)
 {
     GPDrawingArea *canvas = GP_DRAWING_AREA (gp_tool_get_canvas_widget (GP_TOOL (self)));
-    cairo_surface_t *surface = gp_drawing_area_get_surface (canvas);
+    cairo_surface_t *surface = NULL; //gp_drawing_area_get_surface (canvas);
     cairo_t *cairo_context = cairo_create (surface);
     GPRectangleSelectionTool *tool = GP_RECTANGLE_SELECTION_TOOL (self);
     GdkRGBA bg_color;
@@ -435,7 +435,6 @@ gp_rectangle_selection_tool_class_init (GPRectangleSelectionToolClass *klass)
     tool_class->create_icon = gp_line_tool_create_icon;
     tool_class->button_press = gp_rectangle_selection_tool_button_press;
     tool_class->button_release = gp_rectangle_selection_tool_button_release;
-    tool_class->draw = gp_rectangle_selection_tool_draw;
     tool_class->move = gp_rectangle_selection_tool_move;
     tool_class->deactivate = gp_rectangle_selection_tool_deactivate;
 }

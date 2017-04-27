@@ -18,21 +18,22 @@
 
 #include "gp-linetool.h"
 #include "gp-sizetoolproperty.h"
+#include "gp-cairoutils.h"
 
 struct _GPLineTool
 {
-    GPBaseTool parent_instance;
+    GPShapeTool parent_instance;
     GPtrArray *properties;
 };
 
-G_DEFINE_TYPE (GPLineTool, gp_line_tool, GP_TYPE_BASE_TOOL)
+G_DEFINE_TYPE (GPLineTool, gp_line_tool, GP_TYPE_SHAPE_TOOL)
 
-static void
-gp_line_tool_draw (GPBaseTool *tool,
-                   cairo_t *cairo_context)
+static GdkRectangle
+gp_line_tool_draw (GPShapeTool *tool,
+                   cairo_t     *cairo_context)
 {
-    GdkPoint start_point = gp_base_tool_get_start_point (tool);
-    GdkPoint current_point = gp_base_tool_get_current_point (tool);
+    GdkPoint start_point = gp_shape_tool_get_start_point (tool);
+    GdkPoint current_point = gp_shape_tool_get_current_point (tool);
 
     gp_tool_apply_properties (GP_TOOL (tool), (cairo_t *) cairo_context);
 
@@ -43,18 +44,14 @@ gp_line_tool_draw (GPBaseTool *tool,
                    current_point.x,
                    current_point.y);
     cairo_stroke (cairo_context);
+
+    return gp_cairo_stroke_get_bbox (cairo_context);
 }
 
 static GtkWidget*
 gp_line_tool_create_icon (GPTool *tool)
 {
     return gtk_image_new_from_resource ("/org/gnome/Paint/toolicons/line.png");
-}
-
-static void
-gp_line_tool_button_release (GPBaseTool *tool, GdkEventButton *event, cairo_t *cairo_context)
-{
-    gp_line_tool_draw (tool, cairo_context);
 }
 
 static const GPtrArray*
@@ -90,14 +87,13 @@ static void
 gp_line_tool_class_init (GPLineToolClass *klass)
 {
     GPToolClass *tool_class = GP_TOOL_CLASS (klass);
-    GPBaseToolClass *base_tool_class = GP_BASE_TOOL_CLASS (klass);
+    GPShapeToolClass *shape_tool_class = GP_SHAPE_TOOL_CLASS (klass);
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     tool_class->create_icon = gp_line_tool_create_icon;
     tool_class->get_properties = gp_line_tool_get_properties;
 
-    base_tool_class->pre_button_release = gp_line_tool_button_release;
-    base_tool_class->draw_bbox = gp_line_tool_draw;
+    shape_tool_class->draw_shape = gp_line_tool_draw;
 
     gobject_class->finalize = gp_line_tool_finalize;
 }

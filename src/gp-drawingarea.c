@@ -29,97 +29,104 @@ enum
     LAST_SIGNAL
 };
 
-static guint gp_drawing_area_signals[LAST_SIGNAL] = { 0 };
-
 struct _GPDrawingArea
 {
     /*< private >*/
     GtkDrawingArea parent_instance;
+
+    GPDocument *document;
+    cairo_surface_t *surface;
 };
 
-typedef struct
-{
-    cairo_surface_t *active_surface;
-    cairo_surface_t *base_surface;
-} GPDrawingAreaPrivate;
-
-G_DEFINE_TYPE_WITH_PRIVATE (GPDrawingArea, gp_drawing_area, GTK_TYPE_DRAWING_AREA)
+G_DEFINE_TYPE (GPDrawingArea, gp_drawing_area, GTK_TYPE_DRAWING_AREA)
 
 static void
-clear_surface (cairo_surface_t *surface)
+gp_drawing_area_render (cairo_surface_t *source, cairo_surface_t *destination)
 {
-    cairo_t *cr = cairo_create (surface);
+    cairo_t *cr;
 
-    cairo_set_source_rgb (cr, 1, 1, 1);
-    cairo_paint (cr);
-
-    cairo_destroy (cr);
-}
-
-static void
-repaint_surface (cairo_surface_t *dest_surface, cairo_surface_t *src_surface)
-{
-    cairo_t *cr = cairo_create (dest_surface);
-
-    cairo_set_source_surface (cr, src_surface, 0, 0);
-    cairo_paint (cr);
-
-    cairo_destroy (cr);
-}
-
-static void
-init_surface (cairo_surface_t **surface, GtkWidget *widget)
-{
-    cairo_surface_t *tmp_surface = gdk_window_create_similar_image_surface (gtk_widget_get_window (widget),
-                                                                            CAIRO_FORMAT_RGB24,
-                                                                            gtk_widget_get_allocated_width (widget),
-                                                                            gtk_widget_get_allocated_height (widget),
-                                                                            0);
-
-    clear_surface (tmp_surface);
-
-    if (*surface)
+    if (source == NULL || destination == NULL)
     {
-        repaint_surface (tmp_surface, *surface);
-        cairo_surface_destroy (*surface);
+        return;
     }
 
-    *surface = tmp_surface;
+    cr = cairo_create (destination);
+
+    cairo_set_source_surface (cr, source, 0, 0);
+    cairo_paint (cr);
+
+    cairo_destroy (cr);
+
+    return;
+}
+
+static void
+gp_drawing_area_adjust_surface (GPDrawingArea *self)
+{
+    cairo_surface_t *doc_surface = gp_document_get_surface(self->document);
+    gint doc_width = cairo_image_surface_get_width (doc_surface);
+    gint doc_height = cairo_image_surface_get_height (doc_surface);
+    gboolean create_surface = FALSE;
+
+    if (self->surface == NULL)
+    {
+        create_surface = TRUE;
+    }
+    else
+    {
+        gint width = cairo_image_surface_get_width (self->surface);
+        gint height = cairo_image_surface_get_height (self->surface);
+
+        if (width != doc_width || height != doc_height)
+        {
+            create_surface = TRUE;
+            cairo_surface_destroy (self->surface);
+        }
+    }
+
+    if (create_surface)
+    {
+        self->surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, doc_width, doc_height);
+    }
 }
 
 static gboolean
 on_gp_drawing_area_draw (GtkWidget *widget,
                          cairo_t   *cr)
 {
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
+    GPDrawingArea *self = GP_DRAWING_AREA (widget);
 
-    cairo_set_operator(cr, CAIRO_OPERATOR_SOURCE);
-    cairo_set_source_surface (cr, priv->base_surface, 0, 0);
-    cairo_paint (cr);
+    if (self->document == NULL)
+    {
+        return FALSE;
+    }
+    gp_drawing_area_adjust_surface (self);
+    gp_drawing_area_render (gp_document_get_surface (self->document), self->surface);
+    gp_drawing_area_render (gp_document_get_tool_surface (self->document), self->surface);
 
-    g_signal_emit (widget, gp_drawing_area_signals[SIGNAL_DRAW_OVERLAY], 0, cr, NULL);
+    cairo_surface_mark_dirty (self->surface);
+    cairo_set_source_surface (cr, self->surface, 0, 0);
+    cairo_paint(cr);
 
     return FALSE;
 }
 
-static gboolean
-on_gp_drawing_area_configure_event (GtkWidget         *widget,
-                                    GdkEventConfigure *event,
-                                    gpointer           data)
+static void
+gp_drawing_area_finalize (GObject *gobj)
 {
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (GP_DRAWING_AREA (widget));
+    GPDrawingArea *self = GP_DRAWING_AREA (gobj);
 
-    init_surface (&priv->base_surface, widget);
-    init_surface (&priv->active_surface, widget);
+    g_clear_object (&self->document);
 
-    return TRUE;
+    if (self->surface)
+    {
+        cairo_surface_destroy (self->surface);
+    }
 }
 
 static void
 gp_drawing_area_init (GPDrawingArea *drawing_area)
 {
-    gtk_widget_init_template (GTK_WIDGET (drawing_area));
-
     gtk_widget_add_events (GTK_WIDGET (drawing_area),
                            GDK_BUTTON_PRESS_MASK
                            | GDK_BUTTON_RELEASE_MASK
@@ -131,23 +138,11 @@ static void
 gp_drawing_area_class_init (GPDrawingAreaClass *klass)
 {
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     widget_class->draw = on_gp_drawing_area_draw;
 
-    gtk_widget_class_set_template_from_resource (widget_class,
-                                                 "/org/gnome/Paint/gp-drawingarea.ui");
-    gtk_widget_class_bind_template_callback (widget_class,
-                                             on_gp_drawing_area_configure_event);
-
-    gp_drawing_area_signals[SIGNAL_DRAW_OVERLAY] =
-            g_signal_new ("draw-overlay",
-                          G_TYPE_FROM_CLASS (klass),
-                          0,
-                          0,
-                          NULL,
-                          NULL,
-                          gp_VOID__BOXED,
-                          G_TYPE_NONE, 1, CAIRO_GOBJECT_TYPE_CONTEXT);
+    gobject_class->finalize = gp_drawing_area_finalize;
 }
 
 GtkWidget *
@@ -156,19 +151,10 @@ gp_drawing_area_new (void)
     return g_object_new (GP_TYPE_DRAWING_AREA, NULL);
 }
 
-cairo_surface_t*
-gp_drawing_area_get_surface (GPDrawingArea *drawing_area)
-{
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
-
-    return priv->base_surface;
-}
-
 void
-gp_drawing_area_load_from_pixbuf (GPDrawingArea *drawing_area, GdkPixbuf *pixbuf)
+gp_drawing_area_set_document (GPDrawingArea *drawing_area, GPDocument *document)
 {
-    GPDrawingAreaPrivate *priv = gp_drawing_area_get_instance_private (drawing_area);
+    g_clear_object (&drawing_area->document);
 
-    priv->base_surface = gdk_cairo_surface_create_from_pixbuf (pixbuf, 0,
-                                                               gtk_widget_get_window (GTK_WIDGET (drawing_area)));
+    drawing_area->document = g_object_ref (document);
 }

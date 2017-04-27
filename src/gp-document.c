@@ -29,6 +29,7 @@
 enum
 {
     STATUS_CHANGED,
+    VIEW_UPDATED,
     LAST_SIGNAL
 };
 
@@ -93,6 +94,16 @@ gp_document_class_init (GPDocumentClass *klass)
 
     gp_document_signals[STATUS_CHANGED] =
             g_signal_new ("status-changed",
+                          G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
+                          G_SIGNAL_RUN_FIRST,
+                          0,
+                          NULL,
+                          NULL,
+                          NULL,
+                          G_TYPE_NONE, 0);
+
+    gp_document_signals[VIEW_UPDATED] =
+            g_signal_new ("view-updated",
                           G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
                           G_SIGNAL_RUN_FIRST,
                           0,
@@ -184,7 +195,33 @@ gp_document_has_custom_name (GPDocument *document)
 cairo_surface_t *
 gp_document_get_surface (GPDocument *document)
 {
-    return cairo_surface_reference (document->base_layer);
+    return document->base_layer;
+}
+
+cairo_surface_t *
+gp_document_get_tool_surface (GPDocument *document)
+{
+    gboolean create_new_surface = FALSE;
+    gint width = cairo_image_surface_get_width (document->base_layer);
+    gint height = cairo_image_surface_get_height (document->base_layer);
+
+    if (document->active_layer == NULL)
+    {
+        create_new_surface = TRUE;
+    }
+    else if (cairo_image_surface_get_width (document->active_layer) != width
+             || cairo_image_surface_get_height (document->active_layer) != height)
+    {
+        cairo_surface_destroy (document->active_layer);
+        create_new_surface = TRUE;
+    }
+
+    if (create_new_surface)
+    {
+        document->active_layer = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+    }
+
+    return document->active_layer;
 }
 
 GPDocument *
@@ -225,7 +262,14 @@ gp_document_create_from_file (const gchar *filename, GError **error)
 
     document = GP_DOCUMENT (g_object_new (GP_TYPE_DOCUMENT, NULL));
     document->base_layer = surface;
+    document->filename = g_strdup (filename);
 
 cleanup:
     return document;
+}
+
+void
+gp_document_request_update_view (GPDocument *document)
+{
+    g_signal_emit (document, gp_document_signals[VIEW_UPDATED], 0);
 }

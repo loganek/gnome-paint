@@ -50,6 +50,8 @@ typedef struct
     GdkRGBA bg_color;
     GtkEventBox *resizer;
     GPDrawingArea *canvas;
+    GPDocument *document;
+    gulong update_view_id;
 } GPImageEditorPrivate;
 
 #define GP_IMAGE_EDITOR_PRIV(image_editor) ((GPImageEditorPrivate *) gp_image_editor_get_instance_private (image_editor))
@@ -57,13 +59,9 @@ typedef struct
 G_DEFINE_TYPE_WITH_PRIVATE (GPImageEditor, gp_image_editor, GTK_TYPE_FIXED)
 
 static void
-update_tool_color (GPImageEditor *image_editor)
+gp_image_editor_document_view_updated (GPDocument *document, GPImageEditorPrivate *priv)
 {
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
-
-    g_return_if_fail (priv->tool != NULL);
-
-    gp_tool_set_color (priv->tool, &priv->fg_color, &priv->bg_color);
+    gtk_widget_queue_draw (GTK_WIDGET (priv->canvas));
 }
 
 static gboolean
@@ -72,8 +70,8 @@ on_canvas_button_press_event (GtkWidget      *widget,
                               gpointer        user_data)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
-
-    gp_tool_button_press (priv->tool, event);
+    GdkPoint pt = { event->x, event->y };
+    gp_tool_button_press (priv->tool, event, pt);
 
     return TRUE;
 }
@@ -84,14 +82,11 @@ on_canvas_button_release_event (GtkWidget      *widget,
                                 gpointer        user_data)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
-    cairo_t *cr = cairo_create (gp_drawing_area_get_surface (GP_DRAWING_AREA (widget)));
+    GdkPoint pt = { event->x, event->y };
 
-    cairo_set_source_rgba (cr, priv->fg_color.red, priv->fg_color.green, priv->fg_color.blue, priv->fg_color.alpha);
-    gp_tool_button_release (priv->tool, event, cr);
+    gp_tool_button_release (priv->tool, event, pt);
 
-    cairo_destroy (cr);
-
-    g_signal_emit (user_data, gp_image_editor_signals[CANVAS_CHANGED], 0);
+     g_signal_emit (user_data, gp_image_editor_signals[CANVAS_CHANGED], 0);
 
     return TRUE;
 }
@@ -108,7 +103,7 @@ on_canvas_draw_overlay (GtkWidget *widget,
 
     if (priv->tool != NULL)
     {
-        gp_tool_draw (priv->tool, cr);
+        //gp_tool_draw (priv->tool, cr);
     }
 
     cairo_restore (cr);
@@ -120,10 +115,11 @@ on_canvas_motion_notify_event (GtkWidget      *widget,
                                gpointer        user_data)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
+    GdkPoint pt = { event->x, event->y };
 
     g_return_val_if_fail (priv->tool != NULL, TRUE);
 
-    gp_tool_move (priv->tool, event);
+    gp_tool_move (priv->tool, event, pt);
 
     return TRUE;
 }
@@ -146,6 +142,8 @@ gp_image_editor_init (GPImageEditor *self)
 
     priv->bg_color = bg_color; // todo set from application
 
+    priv->update_view_id = 0;
+
     gtk_widget_set_margin_bottom (GTK_WIDGET (priv->canvas), RESIZE_MARGIN);
     gtk_widget_set_margin_end (GTK_WIDGET (priv->canvas), RESIZE_MARGIN);
 
@@ -153,6 +151,8 @@ gp_image_editor_init (GPImageEditor *self)
                       "draw-overlay",
                       G_CALLBACK (on_canvas_draw_overlay),
                       self);
+
+    priv->document = NULL;
 
     gtk_widget_add_events (GTK_WIDGET (priv->resizer),
                            GDK_BUTTON_PRESS_MASK
@@ -197,10 +197,11 @@ gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool)
     {
         gp_tool_deactivate (priv->tool);
         g_signal_emit (image_editor, gp_image_editor_signals[CANVAS_CHANGED], 0);
+
+        g_clear_object (&priv->tool);
     }
 
-    priv->tool = tool;
-    update_tool_color (image_editor);
+    priv->tool = g_object_ref (tool);
     gp_tool_set_canvas_widget (tool, GTK_WIDGET (priv->canvas));
     gp_tool_activate (tool);
 }
@@ -211,7 +212,6 @@ gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color)
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
 
     priv->fg_color = *color;
-    update_tool_color (image_editor);
 }
 
 GtkWidget *
@@ -260,46 +260,17 @@ gp_image_editor_clear_selection (GPImageEditor *image_editor)
 }
 
 void
-gp_image_editor_set_pixbuf (GPImageEditor *image_editor, GdkPixbuf *pixbuf)
-{
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (image_editor));
-
-    gtk_widget_set_size_request (GTK_WIDGET (priv->resizer),
-                                 gdk_pixbuf_get_width (pixbuf),
-                                 gdk_pixbuf_get_height (pixbuf));
-
-    gp_drawing_area_load_from_pixbuf (priv->canvas, pixbuf);
-
-    g_object_unref (G_OBJECT (pixbuf));
-
-}
-
-GdkPixbuf *
-gp_image_editor_get_pixbuf (GPImageEditor *image_editor)
-{
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
-    cairo_surface_t *surface = gp_drawing_area_get_surface (priv->canvas);
-
-    GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface,
-                                                     0, 0,
-                                                     cairo_image_surface_get_width (surface),
-                                                     cairo_image_surface_get_height (surface));
-
-    g_return_val_if_fail (pixbuf != NULL, NULL);
-
-    return pixbuf;
-}
-
-void
 gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document)
 {
-    // TODO error handling
-    cairo_surface_t *surface = gp_document_get_surface (document);
-    GdkPixbuf *pixbuf = gdk_pixbuf_get_from_surface (surface, 0, 0,
-                                                     cairo_image_surface_get_width (surface),
-                                                     cairo_image_surface_get_height (surface));
+    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
 
-    gp_image_editor_set_pixbuf (image_editor, pixbuf);
+    if (priv->document && priv->update_view_id)
+    {
+        g_signal_handler_disconnect (priv->document, priv->update_view_id);
+    }
 
-    cairo_surface_destroy (surface);
+    g_signal_connect (document, "view-updated", G_CALLBACK (gp_image_editor_document_view_updated), priv);
+    g_clear_object (&priv->document);
+    priv->document = g_object_ref (document);
+    gp_drawing_area_set_document (priv->canvas, document);
 }

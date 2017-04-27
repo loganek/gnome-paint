@@ -30,15 +30,15 @@ struct _GPToolClass
 {
     GObjectClass parent_class;
 
-    void (*draw) (GPTool  *tool,
-                  cairo_t *cairo_context);
     void (*button_press) (GPTool *tool,
-                          GdkEventButton *event);
+                          GdkEventButton *event,
+                          GdkPoint pos);
     void (*move) (GPTool *tool,
-                  GdkEventMotion *event);
+                  GdkEventMotion *event,
+                  GdkPoint pos);
     void (*button_release) (GPTool *tool,
                             GdkEventButton *event,
-                            cairo_t *cairo_context);
+                            GdkPoint pos);
     void (*activate) (GPTool *tool);
     void (*deactivate) (GPTool *tool);
 
@@ -48,13 +48,11 @@ struct _GPToolClass
 
 GtkWidget* gp_tool_create_icon (GPTool *tool);
 
-void gp_tool_draw (GPTool *tool, cairo_t *cairo_context);
+void gp_tool_button_press (GPTool *tool, GdkEventButton *event, GdkPoint pos);
 
-void gp_tool_button_press (GPTool *tool, GdkEventButton *event);
+void gp_tool_button_release (GPTool *tool, GdkEventButton *event, GdkPoint pos);
 
-void gp_tool_button_release (GPTool *tool, GdkEventButton *event, cairo_t *cairo_context);
-
-void gp_tool_move (GPTool *tool, GdkEventMotion *event);
+void gp_tool_move (GPTool *tool, GdkEventMotion *event, GdkPoint pos);
 
 void gp_tool_activate (GPTool *tool);
 

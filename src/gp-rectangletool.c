@@ -18,35 +18,29 @@
 
 #include "gp-rectangletool.h"
 #include "gp-sizetoolproperty.h"
+#include "gp-cairoutils.h"
 
 struct _GPRectangleTool
 {
-    GPBaseTool parent_instance;
+    GPShapeTool parent_instance;
     GPtrArray *properties;
 };
 
-G_DEFINE_TYPE (GPRectangleTool, gp_rectangle_tool, GP_TYPE_BASE_TOOL)
+G_DEFINE_TYPE (GPRectangleTool, gp_rectangle_tool, GP_TYPE_SHAPE_TOOL)
 
-static void
-gp_rectangle_tool_draw (GPBaseTool *tool,
-                        cairo_t *cairo_context)
+static GdkRectangle
+gp_rectangle_tool_draw (GPShapeTool  *tool,
+                        cairo_t      *cairo_context)
 {
-    GdkPoint start_point = gp_base_tool_get_start_point (tool);
-    GdkPoint current_point = gp_base_tool_get_current_point (tool);
-
+    GdkRectangle shape_bbox = gp_shape_tool_get_bbox (tool);
     gp_tool_apply_properties (GP_TOOL (tool), cairo_context);
 
     cairo_rectangle (cairo_context,
-                     start_point.x, start_point.y,
-                     current_point.x - start_point.x,
-                     current_point.y - start_point.y);
+                     shape_bbox.x, shape_bbox.y,
+                     shape_bbox.width, shape_bbox.height);
     cairo_stroke (cairo_context);
-}
 
-static void
-gp_rectangle_tool_button_release (GPBaseTool *tool, GdkEventButton *event, cairo_t *cairo_context)
-{
-    gp_rectangle_tool_draw (tool, cairo_context);
+    return gp_cairo_stroke_get_bbox (cairo_context);
 }
 
 static GtkWidget*
@@ -88,14 +82,13 @@ static void
 gp_rectangle_tool_class_init (GPRectangleToolClass *klass)
 {
     GPToolClass *tool_class = GP_TOOL_CLASS (klass);
-    GPBaseToolClass *base_tool_class = GP_BASE_TOOL_CLASS (klass);
+    GPShapeToolClass *shape_tool_class = GP_SHAPE_TOOL_CLASS (klass);
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
     tool_class->create_icon = gp_rectangle_tool_create_icon;
     tool_class->get_properties = gp_rectangle_tool_get_properties;
 
-    base_tool_class->pre_button_release = gp_rectangle_tool_button_release;
-    base_tool_class->draw_bbox = gp_rectangle_tool_draw;
+    shape_tool_class->draw_shape = gp_rectangle_tool_draw;
 
     gobject_class->finalize = gp_rectangle_tool_finalize;
 }

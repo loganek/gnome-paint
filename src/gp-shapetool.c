@@ -96,6 +96,8 @@ gp_shape_tool_button_release (GPTool *self, GdkEventButton *event, GdkPointD pos
 
     gp_shape_tool_draw_shape (GP_SHAPE_TOOL (self), gp_document_get_surface (document), pos);
 
+    gp_document_set_is_dirty (document, TRUE);
+
     priv->grabbed = FALSE;
     priv->prev_bounding_rect = zero_rectangle;
 }

@@ -91,8 +91,8 @@ on_document_status_changed (GPDocumentManager *manager, GPDocument *document, gp
         return;
     }
 
-    filename = gp_document_get_filename (active_document);
-    gp_header_bar_set_filename (header_bar, filename, FALSE);
+    filename = gp_document_get_filename (document);
+    gp_header_bar_set_filename (header_bar, filename, gp_document_get_is_dirty (document));
 
     g_free (filename);
 }

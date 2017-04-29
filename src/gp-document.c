@@ -119,6 +119,11 @@ gp_document_class_init (GPDocumentClass *klass)
 void
 gp_document_set_is_dirty (GPDocument *document, gboolean is_dirty)
 {
+    if (document->is_dirty == is_dirty)
+    {
+        return;
+    }
+
     document->is_dirty = is_dirty;
 
     g_signal_emit (document, gp_document_signals[STATUS_CHANGED], 0);

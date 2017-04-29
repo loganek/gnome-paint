@@ -42,7 +42,8 @@ struct _GPDocumentManager
 
 G_DEFINE_TYPE (GPDocumentManager, gp_document_manager, G_TYPE_OBJECT)
 
-static void on_document_dirty_changed (GPDocument *document, gpointer user_data)
+static void
+on_document_dirty_changed (GPDocument *document, gpointer user_data)
 {
     GPDocumentManager *manager = GP_DOCUMENT_MANAGER (user_data);
 
@@ -128,6 +129,8 @@ gp_document_manager_create_new_document (GPDocumentManager *manager, gint width,
         gp_document_manager_set_active_document (manager, document);
     }
 
+    g_signal_connect (document, "status-changed", G_CALLBACK (on_document_dirty_changed), manager);
+
     return document;
 }
 
@@ -154,6 +157,8 @@ gp_document_manager_create_document_from_file (GPDocumentManager *manager, GFile
     {
         gp_document_manager_set_active_document (manager, document);
     }
+
+    g_signal_connect (document, "status-changed", G_CALLBACK (on_document_dirty_changed), manager);
 
     return document;
 }

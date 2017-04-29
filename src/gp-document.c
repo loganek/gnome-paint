@@ -17,6 +17,7 @@
  */
 
 #include "gp-document.h"
+#include "gp-marshal.h"
 
 #include "cairo.h"
 
@@ -109,8 +110,8 @@ gp_document_class_init (GPDocumentClass *klass)
                           0,
                           NULL,
                           NULL,
-                          NULL,
-                          G_TYPE_NONE, 0);
+                          gp_VOID__BOXED,
+                          G_TYPE_NONE, 1, GDK_TYPE_RECTANGLE);
 
     default_document_name = _("Untitled Document");
 }
@@ -269,7 +270,7 @@ cleanup:
 }
 
 void
-gp_document_request_update_view (GPDocument *document)
+gp_document_request_update_view (GPDocument *document, const GdkRectangle *bounding_box)
 {
-    g_signal_emit (document, gp_document_signals[VIEW_UPDATED], 0);
+    g_signal_emit (document, gp_document_signals[VIEW_UPDATED], 0, bounding_box, NULL);
 }

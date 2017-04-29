@@ -32,10 +32,9 @@ static GdkRectangle
 gp_line_tool_draw (GPShapeTool *tool,
                    cairo_t     *cairo_context)
 {
-    GdkPoint start_point = gp_shape_tool_get_start_point (tool);
-    GdkPoint current_point = gp_shape_tool_get_current_point (tool);
-
-    gp_tool_apply_properties (GP_TOOL (tool), (cairo_t *) cairo_context);
+    GdkPointD start_point = gp_shape_tool_get_start_point (tool);
+    GdkPointD current_point = gp_shape_tool_get_current_point (tool);
+    GdkRectangle bounding_box;
 
     cairo_move_to (cairo_context,
                    start_point.x,
@@ -43,9 +42,11 @@ gp_line_tool_draw (GPShapeTool *tool,
     cairo_line_to (cairo_context,
                    current_point.x,
                    current_point.y);
+
+    bounding_box = gp_cairo_stroke_get_bbox (cairo_context);
     cairo_stroke (cairo_context);
 
-    return gp_cairo_stroke_get_bbox (cairo_context);
+    return bounding_box;
 }
 
 static GtkWidget*

@@ -32,15 +32,21 @@ static GdkRectangle
 gp_rectangle_tool_draw (GPShapeTool  *tool,
                         cairo_t      *cairo_context)
 {
-    GdkRectangle shape_bbox = gp_shape_tool_get_bbox (tool);
-    gp_tool_apply_properties (GP_TOOL (tool), cairo_context);
+    GdkRectangle bbox_rect;
+    GdkPointD start_point = gp_shape_tool_get_start_point (tool);
+    GdkPointD current_point = gp_shape_tool_get_current_point (tool);
 
     cairo_rectangle (cairo_context,
-                     shape_bbox.x, shape_bbox.y,
-                     shape_bbox.width, shape_bbox.height);
+                     start_point.x, start_point.y,
+                     current_point.x - start_point.x,
+                     current_point.y - start_point.y);
+
+
+    bbox_rect = gp_cairo_stroke_get_bbox (cairo_context);
+
     cairo_stroke (cairo_context);
 
-    return gp_cairo_stroke_get_bbox (cairo_context);
+    return bbox_rect;
 }
 
 static GtkWidget*

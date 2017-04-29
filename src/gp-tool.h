@@ -26,19 +26,24 @@ G_BEGIN_DECLS
 #define GP_TYPE_TOOL (gp_tool_get_type ())
 G_DECLARE_DERIVABLE_TYPE (GPTool, gp_tool, GP, TOOL, GObject)
 
+typedef struct {
+    double x;
+    double y;
+} GdkPointD;
+
 struct _GPToolClass
 {
     GObjectClass parent_class;
 
     void (*button_press) (GPTool *tool,
                           GdkEventButton *event,
-                          GdkPoint pos);
+                          GdkPointD pos);
     void (*move) (GPTool *tool,
                   GdkEventMotion *event,
-                  GdkPoint pos);
+                  GdkPointD pos);
     void (*button_release) (GPTool *tool,
                             GdkEventButton *event,
-                            GdkPoint pos);
+                            GdkPointD pos);
     void (*activate) (GPTool *tool);
     void (*deactivate) (GPTool *tool);
 
@@ -48,11 +53,11 @@ struct _GPToolClass
 
 GtkWidget* gp_tool_create_icon (GPTool *tool);
 
-void gp_tool_button_press (GPTool *tool, GdkEventButton *event, GdkPoint pos);
+void gp_tool_button_press (GPTool *tool, GdkEventButton *event, GdkPointD pos);
 
-void gp_tool_button_release (GPTool *tool, GdkEventButton *event, GdkPoint pos);
+void gp_tool_button_release (GPTool *tool, GdkEventButton *event, GdkPointD pos);
 
-void gp_tool_move (GPTool *tool, GdkEventMotion *event, GdkPoint pos);
+void gp_tool_move (GPTool *tool, GdkEventMotion *event, GdkPointD pos);
 
 void gp_tool_activate (GPTool *tool);
 

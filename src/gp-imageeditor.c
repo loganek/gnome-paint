@@ -59,9 +59,22 @@ typedef struct
 G_DEFINE_TYPE_WITH_PRIVATE (GPImageEditor, gp_image_editor, GTK_TYPE_FIXED)
 
 static void
-gp_image_editor_document_view_updated (GPDocument *document, GPImageEditorPrivate *priv)
+gp_image_editor_document_view_updated (GPDocument           *document,
+                                       const GdkRectangle   *bounding_box,
+                                       GPImageEditorPrivate *priv)
 {
-    gtk_widget_queue_draw (GTK_WIDGET (priv->canvas));
+    if (bounding_box == NULL)
+    {
+        gtk_widget_queue_draw (GTK_WIDGET (priv->canvas));
+    }
+    else
+    {
+        gtk_widget_queue_draw_area (GTK_WIDGET (priv->canvas),
+                                    bounding_box->x,
+                                    bounding_box->y,
+                                    bounding_box->x + bounding_box->width,
+                                    bounding_box->y + bounding_box->height);
+    }
 }
 
 static gboolean
@@ -70,7 +83,7 @@ on_canvas_button_press_event (GtkWidget      *widget,
                               gpointer        user_data)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
-    GdkPoint pt = { event->x, event->y };
+    GdkPointD pt = { event->x, event->y };
     gp_tool_button_press (priv->tool, event, pt);
 
     return TRUE;
@@ -82,7 +95,7 @@ on_canvas_button_release_event (GtkWidget      *widget,
                                 gpointer        user_data)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
-    GdkPoint pt = { event->x, event->y };
+    GdkPointD pt = { event->x, event->y };
 
     gp_tool_button_release (priv->tool, event, pt);
 
@@ -115,7 +128,7 @@ on_canvas_motion_notify_event (GtkWidget      *widget,
                                gpointer        user_data)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
-    GdkPoint pt = { event->x, event->y };
+    GdkPointD pt = { event->x, event->y };
 
     g_return_val_if_fail (priv->tool != NULL, TRUE);
 

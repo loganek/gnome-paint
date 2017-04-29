@@ -41,7 +41,7 @@ cairo_surface_t * gp_document_get_tool_surface (GPDocument *document);
 GPDocument * gp_document_create_empty (gint width, gint height);
 GPDocument * gp_document_create_from_file (const gchar *filename, GError **error);
 
-void gp_document_request_update_view (GPDocument *document);
+void gp_document_request_update_view (GPDocument *document, const GdkRectangle *bounding_box);
 
 G_END_DECLS
 

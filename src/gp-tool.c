@@ -35,17 +35,17 @@ apply_property (gpointer ptr, gpointer user_data)
 }
 
 static void
-gp_tool_default_button_press (GPTool *tool, GdkEventButton *event, GdkPoint pos)
+gp_tool_default_button_press (GPTool *tool, GdkEventButton *event, GdkPointD pos)
 {
 }
 
 static void
-gp_tool_default_button_release (GPTool *tool, GdkEventButton *event, GdkPoint pos)
+gp_tool_default_button_release (GPTool *tool, GdkEventButton *event, GdkPointD pos)
 {
 }
 
 static void
-gp_tool_default_move (GPTool *tool, GdkEventMotion *event, GdkPoint pos)
+gp_tool_default_move (GPTool *tool, GdkEventMotion *event, GdkPointD pos)
 {
 }
 
@@ -94,19 +94,19 @@ gp_tool_create_icon (GPTool *tool)
 }
 
 void
-gp_tool_button_press (GPTool *tool, GdkEventButton *event, GdkPoint pos)
+gp_tool_button_press (GPTool *tool, GdkEventButton *event, GdkPointD pos)
 {
     GP_TOOL_GET_CLASS (tool)->button_press (tool, event, pos);
 }
 
 void
-gp_tool_button_release (GPTool *tool, GdkEventButton *event, GdkPoint pos)
+gp_tool_button_release (GPTool *tool, GdkEventButton *event, GdkPointD pos)
 {
     GP_TOOL_GET_CLASS (tool)->button_release (tool, event, pos);
 }
 
 void
-gp_tool_move (GPTool *tool, GdkEventMotion *event, GdkPoint pos)
+gp_tool_move (GPTool *tool, GdkEventMotion *event, GdkPointD pos)
 {
     GP_TOOL_GET_CLASS (tool)->move (tool, event, pos);
 }

@@ -23,30 +23,17 @@
 
 typedef struct
 {
-    GdkPoint start_point;
-    GdkPoint current_point;
+    GdkPointD start_point;
+    GdkPointD current_point;
     gboolean grabbed;
     GdkRectangle prev_bounding_rect;
 } GPShapeToolPrivate;
 
+static GdkRectangle zero_rectangle = { 0, 0, 0, 0 };
+
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GPShapeTool, gp_shape_tool, GP_TYPE_TOOL)
 
 #define GP_SHAPE_TOOL_PRIV(shape_tool) ((GPShapeToolPrivate *) gp_shape_tool_get_instance_private (GP_SHAPE_TOOL (shape_tool)))
-
-static void
-get_min_max (gint v1, gint v2, gint *min, gint *max)
-{
-    if (v1 > v2)
-    {
-        *min = v2;
-        *max = v1;
-    }
-    else
-    {
-        *min = v1;
-        *max = v2;
-    }
-}
 
 static GdkRectangle
 gp_shape_tool_draw (GPShapeTool *tool, cairo_t *cairo_context)
@@ -59,72 +46,78 @@ gp_shape_tool_draw (GPShapeTool *tool, cairo_t *cairo_context)
 }
 
 static void
-gp_shape_tool_button_press (GPTool *self, GdkEventButton *event, GdkPoint pos)
+gp_shape_tool_draw_shape (GPShapeTool *self, cairo_surface_t *draw_surface, GdkPointD pos)
 {
     GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (self);
-
-    priv->start_point = priv->current_point = pos;
-    priv->grabbed = TRUE;
-}
-
-static void
-gp_shape_tool_button_release (GPTool *self, GdkEventButton *event, GdkPoint pos)
-{
-    GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (self);
-    GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
-    cairo_t *cr = cairo_create (gp_document_get_surface (document));
-
-    priv->grabbed = FALSE;
-
-    gp_cairo_surface_clear (gp_document_get_tool_surface (document));
-
-    priv->current_point = pos;
-
-    gp_shape_tool_draw (GP_SHAPE_TOOL (self), cr);
-    cairo_destroy (cr);
-    gp_document_request_update_view (document);
-
-    // doc.Workspace.Invalidate (last_dirty.ToGdkRectangle ());
-}
-
-static void
-gp_shape_tool_move (GPTool *self, GdkEventMotion *event, GdkPoint pos)
-{
-    GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (self);
-    GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
-    cairo_surface_t *surface = gp_document_get_tool_surface (document);
-    cairo_t *cr = cairo_create (surface);
+    GPDocument *document;
+    cairo_t *cr;
+    GdkRectangle bounding_rect;
 
     if (!priv->grabbed)
     {
         return;
     }
 
-    gp_cairo_surface_clear (surface);
+    document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
 
-    priv->current_point = pos;
+    gp_cairo_surface_clear (gp_document_get_tool_surface (document));
 
-    GdkRectangle bounding_rect = gp_shape_tool_draw (GP_SHAPE_TOOL (self), cr);
+    priv->current_point.x = pos.x + 0.5;
+    priv->current_point.y = pos.y + 0.5;
+
+    cr = cairo_create (draw_surface);
+    cairo_set_antialias (cr, CAIRO_ANTIALIAS_NONE);
+    gp_tool_apply_properties (GP_TOOL (self), cr);
+    bounding_rect = gp_shape_tool_draw (GP_SHAPE_TOOL (self), cr);
     cairo_destroy (cr);
-    // TODO bounding rect clamp()
-    // doc.Workspace.Invalidate (last_dirty.ToGdkRectangle ());
-    // doc.Workspace.Invalidate (dirty.ToGdkRectangle ());
 
-    gp_document_request_update_view (document);
-
+    gp_document_request_update_view (document, &bounding_rect);
+    gp_document_request_update_view (document, &priv->prev_bounding_rect);
     priv->prev_bounding_rect = bounding_rect;
+}
+
+static void
+gp_shape_tool_button_press (GPTool *self, GdkEventButton *event, GdkPointD pos)
+{
+    GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (self);
+    GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+
+    priv->start_point = pos;
+    priv->grabbed = TRUE;
+
+    gp_shape_tool_draw_shape (GP_SHAPE_TOOL (self), gp_document_get_tool_surface (document), pos);
+}
+
+static void
+gp_shape_tool_button_release (GPTool *self, GdkEventButton *event, GdkPointD pos)
+{
+    GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (self);
+    GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+
+    gp_shape_tool_draw_shape (GP_SHAPE_TOOL (self), gp_document_get_surface (document), pos);
+
+    priv->grabbed = FALSE;
+    priv->prev_bounding_rect = zero_rectangle;
+}
+
+static void
+gp_shape_tool_move (GPTool *self, GdkEventMotion *event, GdkPointD pos)
+{
+    GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+    cairo_surface_t *tool_surface = gp_document_get_tool_surface (document);
+
+    gp_shape_tool_draw_shape (GP_SHAPE_TOOL (self), tool_surface, pos);
 }
 
 static void
 gp_shape_tool_init (GPShapeTool *self)
 {
     GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (self);
-    GdkPoint init_point = { -1, -1 };
-    GdkRectangle init_rect = { 0, 0, 0, 0 };
+    GdkPointD init_point = { -1, -1 };
 
     priv->grabbed = FALSE;
     priv->start_point = priv->current_point = init_point;
-    priv->prev_bounding_rect = init_rect;
+    priv->prev_bounding_rect = zero_rectangle;
 }
 
 static void
@@ -139,30 +132,14 @@ gp_shape_tool_class_init (GPShapeToolClass *klass)
     klass->draw_shape = NULL;
 }
 
-GdkPoint
+GdkPointD
 gp_shape_tool_get_start_point (GPShapeTool *tool)
 {
     return GP_SHAPE_TOOL_PRIV (tool)->start_point;
 }
 
-GdkPoint
+GdkPointD
 gp_shape_tool_get_current_point (GPShapeTool *tool)
 {
     return GP_SHAPE_TOOL_PRIV (tool)->current_point;
-}
-
-GdkRectangle
-gp_shape_tool_get_bbox (GPShapeTool *tool)
-{
-    GdkRectangle bbox;
-    GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (tool);
-
-    // TODO unclear code
-    get_min_max (priv->start_point.x, priv->current_point.x, &bbox.x, &bbox.width);
-    bbox.width -= bbox.x;
-
-    get_min_max (priv->start_point.y, priv->current_point.y, &bbox.y, &bbox.height);
-    bbox.height -= bbox.y;
-
-    return bbox;
 }

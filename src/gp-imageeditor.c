@@ -253,6 +253,7 @@ void
 gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document)
 {
     GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (image_editor);
+    GPSize doc_size;
 
     if (priv->document && priv->update_view_id)
     {
@@ -262,5 +263,10 @@ gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document)
     g_signal_connect (document, "view-updated", G_CALLBACK (gp_image_editor_document_view_updated), priv);
     g_clear_object (&priv->document);
     priv->document = g_object_ref (document);
+
+    doc_size = gp_document_get_size (document);
+
     gp_drawing_area_set_document (priv->canvas, document);
+
+    gtk_widget_set_size_request (priv->resizer, doc_size.width, doc_size.height);
 }

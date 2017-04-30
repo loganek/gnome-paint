@@ -280,3 +280,14 @@ gp_document_request_update_view (GPDocument *document, const GdkRectangle *bound
 {
     g_signal_emit (document, gp_document_signals[VIEW_UPDATED], 0, bounding_box, NULL);
 }
+
+GPSize
+gp_document_get_size (GPDocument *document)
+{
+    GPSize size;
+
+    size.width = cairo_image_surface_get_width (document->base_layer);
+    size.height = cairo_image_surface_get_height (document->base_layer);
+
+    return size;
+}

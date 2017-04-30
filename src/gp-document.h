@@ -26,6 +26,12 @@ G_BEGIN_DECLS
 #define GP_TYPE_DOCUMENT (gp_document_get_type ())
 G_DECLARE_FINAL_TYPE (GPDocument, gp_document, GP, DOCUMENT, GObject)
 
+typedef struct
+{
+    guint width;
+    guint height;
+} GPSize;
+
 void gp_document_set_is_dirty (GPDocument *document, gboolean is_dirty);
 gboolean gp_document_get_is_dirty (GPDocument *document);
 
@@ -42,6 +48,8 @@ GPDocument * gp_document_create_empty (gint width, gint height);
 GPDocument * gp_document_create_from_file (const gchar *filename, GError **error);
 
 void gp_document_request_update_view (GPDocument *document, const GdkRectangle *bounding_box);
+
+GPSize gp_document_get_size (GPDocument *document);
 
 G_END_DECLS
 

@@ -268,5 +268,5 @@ gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document)
 
     gp_drawing_area_set_document (priv->canvas, document);
 
-    gtk_widget_set_size_request (priv->resizer, doc_size.width + RESIZE_MARGIN, doc_size.height + RESIZE_MARGIN);
+    gtk_widget_set_size_request (GTK_WIDGET (priv->resizer), doc_size.width + RESIZE_MARGIN, doc_size.height + RESIZE_MARGIN);
 }

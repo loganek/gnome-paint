@@ -79,7 +79,6 @@ gp_color_selector_box_active_color_changed (GPColorManager *manager, gpointer us
 static GtkWidget *
 gp_color_selector_box_create_color_button (GPColorSelectorBox *self, const GdkRGBA *color)
 {
-    GPColorSelectorBoxPrivate *priv = GP_COLOR_SELECTOR_BOX_PRIV (self);
     GtkWidget *btn = gp_color_button_new_with_rgba (color);
 
     gtk_widget_show (btn);

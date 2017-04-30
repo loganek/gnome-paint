@@ -162,6 +162,7 @@ gp_document_save_file (GPDocument *document, const gchar *filename, GError **err
     gdk_pixbuf_save (pixbuf, filename, "png", error, NULL); // TODO possible formats can be loaded automatically (see documentation), support parameters
 
     gp_document_set_filename (document, filename);
+    gp_document_set_is_dirty (document, FALSE);
 }
 
 static cairo_surface_t *

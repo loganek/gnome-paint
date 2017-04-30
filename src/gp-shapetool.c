@@ -67,9 +67,9 @@ gp_shape_tool_draw (GPShapeTool *tool, cairo_t *cairo_context)
 {
     GPShapeToolClass *klass = GP_SHAPE_TOOL_GET_CLASS (tool);
 
-    g_return_if_fail (klass->draw_shape != NULL);
+    g_return_val_if_fail (klass->draw_shape != NULL, zero_rectangle);
 
-    klass->draw_shape (tool, cairo_context);
+    return klass->draw_shape (tool, cairo_context);
 }
 
 static void

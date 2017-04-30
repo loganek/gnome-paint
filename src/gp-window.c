@@ -44,6 +44,7 @@ typedef struct
 G_DEFINE_TYPE_WITH_PRIVATE (GPWindow, gp_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static GActionEntry win_entries[] = {
+    { "open", _gp_cmd_open, NULL, NULL, NULL, {} },
     { "save-as", _gp_cmd_save_as, NULL, NULL, NULL, {} },
     { "save", _gp_cmd_save, NULL, NULL, NULL, {} },
     { "cut", _gp_cmd_cut, NULL, NULL, NULL, {} },

@@ -23,6 +23,10 @@
 
 G_BEGIN_DECLS
 
+void _gp_cmd_open (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data);
+
 void _gp_cmd_save_as (GSimpleAction *action,
                       GVariant      *parameter,
                       gpointer       user_data);
@@ -32,16 +36,16 @@ void _gp_cmd_save (GSimpleAction *action,
                    gpointer       user_data);
 
 void _gp_cmd_cut (GSimpleAction *action,
-                   GVariant      *parameter,
-                   gpointer       user_data);
+                  GVariant      *parameter,
+                  gpointer       user_data);
 
 void _gp_cmd_copy (GSimpleAction *action,
                    GVariant      *parameter,
                    gpointer       user_data);
 
 void _gp_cmd_paste (GSimpleAction *action,
-                   GVariant      *parameter,
-                   gpointer       user_data);
+                    GVariant      *parameter,
+                    gpointer       user_data);
 
 G_END_DECLS
 

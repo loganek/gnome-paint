@@ -169,6 +169,7 @@ gp_application_startup (GApplication *application)
     /* Must register custom types before using them from GtkBuilder. */
     gp_widget_gtype_init ();
 
+    add_accelerator (GTK_APPLICATION (application), "win.open",  "<Primary>o");
     add_accelerator (GTK_APPLICATION (application), "win.close", "<Primary>w");
     add_accelerator (GTK_APPLICATION (application), "win.copy",  "<Primary>c");
     add_accelerator (GTK_APPLICATION (application), "win.cut",   "<Primary>x");

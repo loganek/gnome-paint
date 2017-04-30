@@ -23,6 +23,30 @@
 #include "gp-window.h"
 #include "gp-dialogutils.h"
 
+void _gp_cmd_open (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+    GPDocumentManager *document_manager = gp_document_manager_get_default ();
+    GPDocument *document;
+    gchar *filename = NULL;
+    GFile *file;
+
+    if (gp_dialog_utils_show_image_open_dialog (GTK_WINDOW (user_data), &filename) != GTK_RESPONSE_ACCEPT)
+    {
+        return;
+    }
+
+    file = g_file_new_for_path (filename);
+    g_free (filename);
+
+    document = gp_document_manager_create_document_from_file (document_manager, file);
+
+    g_object_unref (file);
+
+    gp_document_manager_set_active_document (document_manager, document);
+}
+
 static void
 save_file_cmd (GPWindow *window, GPDocument *document, gboolean use_old_name)
 {
@@ -81,8 +105,8 @@ void _gp_cmd_save (GSimpleAction *action,
 }
 
 void _gp_cmd_cut (GSimpleAction *action,
-                   GVariant      *parameter,
-                   gpointer       user_data)
+                  GVariant      *parameter,
+                  gpointer       user_data)
 {
     GPImageEditor *editor = gp_window_get_active_image_editor (GP_WINDOW (user_data));
 
@@ -104,8 +128,8 @@ void _gp_cmd_copy (GSimpleAction *action,
 }
 
 void _gp_cmd_paste (GSimpleAction *action,
-                   GVariant      *parameter,
-                   gpointer       user_data)
+                    GVariant      *parameter,
+                    gpointer       user_data)
 {
 
 }

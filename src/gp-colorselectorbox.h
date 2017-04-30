@@ -28,10 +28,6 @@ G_DECLARE_FINAL_TYPE (GPColorSelectorBox, gp_color_selector_box, GP, COLOR_SELEC
 
 GtkWidget* gp_color_selector_box_new (void);
 
-void gp_color_selector_box_set_color (GPColorSelectorBox *color_selector_box, const GdkRGBA *rgba);
-
-void gp_color_selector_box_get_color (GPColorSelectorBox *color_selector_box, GdkRGBA *rgba);
-
 G_END_DECLS
 
 #endif /* GP_COLOR_SELECTOR_BOX_H_ */

@@ -31,6 +31,9 @@ GPColorManager * gp_color_manager_default (void);
 void gp_color_manager_get_color (const GPColorManager *color_manager, GdkRGBA *fg_color, GdkRGBA *bg_color);
 void gp_color_manager_set_color (GPColorManager *color_manager, const GdkRGBA *fg_color, const GdkRGBA *bg_color);
 
+gsize gp_color_manager_get_palette_size (GPColorManager *color_manager);
+GdkRGBA gp_color_manager_get_palette_color (GPColorManager *color_manager, gsize pos);
+
 G_END_DECLS
 
 #endif /* GP_COLOR_MANAGER_H_ */

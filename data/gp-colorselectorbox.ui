@@ -6,10 +6,13 @@
     <property name="visible">True</property>
     <property name="can_focus">False</property>
     <child>
-      <object class="GtkLabel" id="active_color_indicator">
+      <object class="GtkFixed" id="active_colors_fixed">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
-        <property name="label" translatable="yes">label</property>
+        <property name="margin_left">10</property>
+        <property name="margin_right">10</property>
+        <property name="margin_top">10</property>
+        <property name="margin_bottom">10</property>
       </object>
       <packing>
         <property name="expand">False</property>
@@ -22,11 +25,11 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="orientation">vertical</property>
-        <property name="homogeneous">True</property>
+        <property name="min_children_per_line">2</property>
         <property name="max_children_per_line">2</property>
       </object>
       <packing>
-        <property name="expand">True</property>
+        <property name="expand">False</property>
         <property name="fill">True</property>
         <property name="position">1</property>
       </packing>

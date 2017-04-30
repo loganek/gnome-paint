@@ -86,7 +86,7 @@ gp_tool_box_tool_added (GPToolManager *tool_manager, GPTool *tool, gpointer user
     gtk_widget_show (btn);
     gtk_flow_box_insert (priv->flow_box, btn, 0);
 
-    g_object_set_data (G_OBJECT (btn), "tool", g_object_ref (tool));
+    g_object_set_data (G_OBJECT (btn), "tool", g_object_ref (tool)); // TODO UNREF
 
     g_signal_connect (G_OBJECT (btn),
                       "toggled",
@@ -121,7 +121,7 @@ gp_tool_box_init (GPToolBox *tool_box)
 
     priv->buttons_list = NULL;
     priv->set_active_tts = FALSE;
-
+    // TODO finalize
     priv->tool_manager = g_object_ref (gp_tool_manager_default ());
 
     g_signal_connect (priv->tool_manager, "tool-added", G_CALLBACK (gp_tool_box_tool_added), tool_box);

@@ -104,24 +104,6 @@ on_canvas_button_release_event (GtkWidget      *widget,
     return TRUE;
 }
 
-static void
-on_canvas_draw_overlay (GtkWidget *widget,
-                        cairo_t   *cr,
-                        gpointer   user_data)
-{
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (user_data));
-
-    cairo_save (cr);
-    cairo_set_source_rgba (cr, priv->fg_color.red, priv->fg_color.green, priv->fg_color.blue, priv->fg_color.alpha);
-
-    if (priv->tool != NULL)
-    {
-        //gp_tool_draw (priv->tool, cr);
-    }
-
-    cairo_restore (cr);
-}
-
 static gboolean
 on_canvas_motion_notify_event (GtkWidget      *widget,
                                GdkEventMotion *event,
@@ -159,11 +141,6 @@ gp_image_editor_init (GPImageEditor *self)
 
     gtk_widget_set_margin_bottom (GTK_WIDGET (priv->canvas), RESIZE_MARGIN);
     gtk_widget_set_margin_end (GTK_WIDGET (priv->canvas), RESIZE_MARGIN);
-
-    g_signal_connect (priv->canvas,
-                      "draw-overlay",
-                      G_CALLBACK (on_canvas_draw_overlay),
-                      self);
 
     priv->document = NULL;
 

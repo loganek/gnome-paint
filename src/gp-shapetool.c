@@ -18,7 +18,7 @@
 
 #include "gp-shapetool.h"
 #include "gp-documentmanager.h"
-
+#include "gp-colormanager.h"
 #include "gp-cairoutils.h"
 
 typedef struct
@@ -34,6 +34,15 @@ static GdkRectangle zero_rectangle = { 0, 0, 0, 0 };
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GPShapeTool, gp_shape_tool, GP_TYPE_TOOL)
 
 #define GP_SHAPE_TOOL_PRIV(shape_tool) ((GPShapeToolPrivate *) gp_shape_tool_get_instance_private (GP_SHAPE_TOOL (shape_tool)))
+
+static void
+gp_shape_tool_apply_color (cairo_t *cr)
+{
+    GPColorManager *manager = gp_color_manager_default ();
+    GdkRGBA color;
+    gp_color_manager_get_color (manager, &color, NULL);
+    cairo_set_source_rgba (cr, color.red, color.green, color.blue, color.alpha);
+}
 
 static GdkRectangle
 gp_shape_tool_draw (GPShapeTool *tool, cairo_t *cairo_context)
@@ -66,6 +75,7 @@ gp_shape_tool_draw_shape (GPShapeTool *self, cairo_surface_t *draw_surface, GdkP
     priv->current_point.y = pos.y + 0.5;
 
     cr = cairo_create (draw_surface);
+    gp_shape_tool_apply_color (cr);
     cairo_set_antialias (cr, CAIRO_ANTIALIAS_NONE);
     gp_tool_apply_properties (GP_TOOL (self), cr);
     bounding_rect = gp_shape_tool_draw (GP_SHAPE_TOOL (self), cr);

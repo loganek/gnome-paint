@@ -20,28 +20,7 @@
 
 #include "gp-colorselectorbox.h"
 #include "gp-colorbutton.h"
-
-#define BOX_COLOR_COUNT 8
-
-static GdkRGBA default_colors[BOX_COLOR_COUNT] = {
-    {1.0, 1.0, 1.0, 1.0}, // white
-    {0.0, 0.0, 0.0, 1.0}, // black
-    {1.0, 0.0, 0.0, 1.0}, // red
-    {0.0, 1.0, 0.0, 1.0}, // green
-    {0.0, 0.0, 1.0, 1.0}, // blue
-    {1.0, 1.0, 0.0, 1.0}, // yellow
-    {0.0, 1.0, 1.0, 1.0}, // cyan
-    {1.0, 0.0, 1.0, 1.0}, // magenta
-};
-
-/* Signals */
-enum
-{
-    COLOR_CHANGED,
-    LAST_SIGNAL
-};
-
-static guint gp_color_selector_box_signals[LAST_SIGNAL] = { 0 };
+#include "gp-colormanager.h"
 
 struct _GPColorSelectorBox
 {
@@ -51,66 +30,112 @@ struct _GPColorSelectorBox
 
 typedef struct
 {
-    GdkRGBA active_color;
     GtkFlowBox *flow_box;
-    GtkLabel *active_color_indicator;
+    GtkFixed *active_colors_fixed;
+    GPColorManager *color_manager;
+
+    GtkWidget *fg_button;
+    GtkWidget *bg_button;
 } GPColorSelectorBoxPrivate;
 
 G_DEFINE_TYPE_WITH_PRIVATE (GPColorSelectorBox, gp_color_selector_box, GTK_TYPE_BOX)
 
-static gboolean
-on_gb_color_selector_box_color_changed (GtkWidget *widget, gpointer user_data)
-{
-    GPColorSelectorBox *color_selector_box = GP_COLOR_SELECTOR_BOX (user_data);
+#define GP_COLOR_SELECTOR_BOX_PRIV(object) ((GPColorSelectorBoxPrivate *) gp_color_selector_box_get_instance_private (object))
 
+static gboolean
+gb_color_selector_box_button_clicked (GtkWidget *widget, GdkEventButton *event, gpointer user_data)
+{
+    GPColorSelectorBoxPrivate *priv = GP_COLOR_SELECTOR_BOX_PRIV (user_data);
     GdkRGBA color;
+
     gtk_color_chooser_get_rgba (GTK_COLOR_CHOOSER (widget), &color);
-    gp_color_selector_box_set_color (color_selector_box, &color);
+
+    if (event->button == GDK_BUTTON_PRIMARY)
+    {
+        gp_color_manager_set_color (priv->color_manager, &color, NULL);
+    }
+    else
+    {
+        gp_color_manager_set_color (priv->color_manager, NULL, &color);
+    }
 
     return TRUE;
 }
 
+
 static void
-gp_color_selector_box_populate_default_colors (GPColorSelectorBox *color_selector_box)
+gp_color_selector_box_active_color_changed (GPColorManager *manager, gpointer user_data)
 {
-    GPColorSelectorBoxPrivate *priv = gp_color_selector_box_get_instance_private (color_selector_box);
+    GPColorSelectorBoxPrivate *priv = GP_COLOR_SELECTOR_BOX_PRIV (user_data);
+    GdkRGBA fg_color;
+    GdkRGBA bg_color;
 
-    for (int i = 0; i < BOX_COLOR_COUNT; i++)
+    gp_color_manager_get_color (manager, &fg_color, &bg_color);
+
+    gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER (priv->fg_button), &fg_color);
+    gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER (priv->bg_button), &bg_color);
+}
+
+static GtkWidget *
+gp_color_selector_box_create_color_button (GPColorSelectorBox *self, const GdkRGBA *color)
+{
+    GPColorSelectorBoxPrivate *priv = GP_COLOR_SELECTOR_BOX_PRIV (self);
+    GtkWidget *btn = gp_color_button_new_with_rgba (color);
+
+    gtk_widget_show (btn);
+
+    g_signal_connect (G_OBJECT (btn), "single-clicked",
+                      G_CALLBACK (gb_color_selector_box_button_clicked),
+                      self);
+
+    return btn;
+}
+
+static void
+gp_color_selector_box_populate_colors (GPColorSelectorBox *self)
+{
+    GPColorSelectorBoxPrivate *priv = GP_COLOR_SELECTOR_BOX_PRIV (self);
+    gsize i;
+
+    for (i = 0; i < gp_color_manager_get_palette_size (priv->color_manager); i++)
     {
-        GtkWidget *btn = gp_color_button_new_with_rgba (&default_colors[i]);
+        GdkRGBA color = gp_color_manager_get_palette_color (priv->color_manager, i);
+        GtkWidget *btn = gp_color_selector_box_create_color_button (self, &color);
 
-        gtk_widget_show (btn);
         gtk_flow_box_insert (priv->flow_box, btn, i);
-
-        g_signal_connect(G_OBJECT (btn), "singleclicked",
-                         G_CALLBACK (on_gb_color_selector_box_color_changed),
-                         color_selector_box);
-        g_signal_connect(G_OBJECT (btn), "color-set",
-                         G_CALLBACK (on_gb_color_selector_box_color_changed),
-                         color_selector_box);
     }
 }
 
 static void
-gp_color_selector_box_update_active_color_indicator (GPColorSelectorBox *color_selector_box)
+gp_color_selector_box_create_special_buttons (GPColorSelectorBox *self)
 {
-    // TODO implement this method properly
-    GPColorSelectorBoxPrivate *priv = gp_color_selector_box_get_instance_private (color_selector_box);
+    GPColorSelectorBoxPrivate *priv = GP_COLOR_SELECTOR_BOX_PRIV (self);
+    GdkRGBA fg_color;
+    GdkRGBA bg_color;
 
-    gchar *text = g_strdup_printf("%f", priv->active_color.red);
-    gtk_label_set_text (priv->active_color_indicator, text);
-    g_free (text);
+    gp_color_manager_get_color (priv->color_manager, &fg_color, &bg_color);
+
+    priv->bg_button = gp_color_selector_box_create_color_button (self, &bg_color);
+    gtk_fixed_put (priv->active_colors_fixed, priv->bg_button, 20, 20);
+
+    priv->fg_button = gp_color_selector_box_create_color_button (self, &fg_color);
+    gtk_fixed_put (priv->active_colors_fixed, priv->fg_button, 0, 0);
 }
 
 static void
-gp_color_selector_box_init (GPColorSelectorBox *color_selector_box)
+gp_color_selector_box_init (GPColorSelectorBox *self)
 {
-    gtk_widget_init_template (GTK_WIDGET (color_selector_box));
+    GPColorSelectorBoxPrivate *priv = GP_COLOR_SELECTOR_BOX_PRIV (self);
 
-    gp_color_selector_box_update_active_color_indicator (color_selector_box);
-    gp_color_selector_box_populate_default_colors (color_selector_box);
+    gtk_widget_init_template (GTK_WIDGET (self));
 
-    gp_color_selector_box_set_color (color_selector_box, &default_colors[1]); // TODO hack
+    priv->color_manager = g_object_ref (gp_color_manager_default ());
+    gp_color_selector_box_populate_colors (self);
+    gp_color_selector_box_create_special_buttons (self);
+
+    g_signal_connect (G_OBJECT (priv->color_manager), "active-color-changed",
+                      G_CALLBACK (gp_color_selector_box_active_color_changed),
+                      self);
 }
 
 static void
@@ -123,35 +148,9 @@ gp_color_selector_box_class_init (GPColorSelectorBoxClass *klass)
     gtk_widget_class_bind_template_child_private (widget_class, GPColorSelectorBox,
                                                   flow_box);
     gtk_widget_class_bind_template_child_private (widget_class, GPColorSelectorBox,
-                                                  active_color_indicator);
-
-    gp_color_selector_box_signals[COLOR_CHANGED] = g_signal_new ("color-changed",
-                                                                 G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
-                                                                 G_SIGNAL_RUN_FIRST,
-                                                                 0,
-                                                                 NULL, NULL, NULL,
-                                                                 G_TYPE_NONE, 0);
+                                                  active_colors_fixed);
 }
 
-void
-gp_color_selector_box_set_color (GPColorSelectorBox *color_selector_box, const GdkRGBA *rgba)
-{
-    GPColorSelectorBoxPrivate *priv = gp_color_selector_box_get_instance_private (color_selector_box);
-
-    priv->active_color = *rgba;
-
-    gp_color_selector_box_update_active_color_indicator (color_selector_box);
-
-    g_signal_emit (color_selector_box, gp_color_selector_box_signals[COLOR_CHANGED], 0);
-}
-
-void
-gp_color_selector_box_get_color (GPColorSelectorBox *color_selector_box, GdkRGBA *rgba)
-{
-    GPColorSelectorBoxPrivate *priv = gp_color_selector_box_get_instance_private (color_selector_box);
-
-    *rgba = priv->active_color;
-}
 
 GtkWidget *
 gp_color_selector_box_new (void)

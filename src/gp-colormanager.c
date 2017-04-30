@@ -23,6 +23,31 @@
 #define GP_DEFAULT_FG_COLOR ((GdkRGBA) {0.0, 0.0, 0.0, 1.0})
 #define GP_DEFAULT_BG_COLOR ((GdkRGBA) {1.0, 1.0, 1.0, 1.0})
 
+#define PALETTE_SIZE 20
+
+static GdkRGBA default_colors[PALETTE_SIZE] = {
+    {0.0, 0.0, 0.0, 1.0}, // black
+    {1.0, 1.0, 1.0, 1.0}, // white
+    {0.3, 0.3, 0.3, 1.0}, // dark gray
+    {0.7, 0.7, 0.7, 1.0}, // light gray
+    {0.7, 0.0, 0.0, 1.0}, // dark red
+    {0.8, 0.4, 0.0, 1.0}, // brown
+    {1.0, 0.0, 0.0, 1.0}, // red
+    {1.0, 0.4, 0.6, 1.0}, // pink
+    {1.0, 0.4, 0.2, 1.0}, // orange
+    {1.0, 0.8, 0.0, 1.0}, // dark orange
+    {1.0, 1.0, 0.0, 1.0}, // yellow
+    {1.0, 0.8, 0.6, 1.0}, // acree
+    {0.0, 0.8, 0.0, 1.0}, // green
+    {0.6, 1.0, 0.2, 1.0}, // light green
+    {0.2, 0.6, 1.0, 1.0}, // blue 1
+    {0.0, 0.8, 1.0, 1.0}, // blue 2
+    {0.0, 0.0, 1.0, 1.0}, // blue
+    {0.0, 0.0, 0.6, 1.0}, // dark blue
+    {0.5, 0.0, 0.4, 1.0}, // purple
+    {1.0, 0.8, 1.0, 1.0}, // light pink
+};
+
 /* Signals */
 enum
 {
@@ -39,6 +64,7 @@ struct _GPColorManager
 
     GdkRGBA bg_color;
     GdkRGBA fg_color;
+    GdkRGBA palette[PALETTE_SIZE];
 };
 
 G_DEFINE_TYPE (GPColorManager, gp_color_manager, G_TYPE_OBJECT)
@@ -49,10 +75,23 @@ gp_application_finalize (GObject *object)
 }
 
 static void
+gp_color_manager_load_palette (GPColorManager *self)
+{
+    gint i;
+
+    for (i = 0; i < PALETTE_SIZE; i++)
+    {
+        self->palette[i] = default_colors[i];
+    }
+}
+
+static void
 gp_color_manager_init (GPColorManager *self)
 {
     self->bg_color = GP_DEFAULT_BG_COLOR;
     self->fg_color = GP_DEFAULT_FG_COLOR;
+
+    gp_color_manager_load_palette (self);
 }
 
 static void
@@ -74,7 +113,6 @@ gp_color_manager_class_init (GPColorManagerClass *klass)
 GPColorManager *
 gp_color_manager_default (void)
 {
-
     // TODO default() pattern??
     static GPColorManager *default_manager = NULL;
 
@@ -119,4 +157,18 @@ void gp_color_manager_set_color (GPColorManager *color_manager, const GdkRGBA *f
     {
         g_signal_emit (color_manager, gp_color_manager_signals[ACTIVE_COLOR_CHANGED], 0);
     }
+}
+
+gsize
+gp_color_manager_get_palette_size (GPColorManager *color_manager)
+{
+    return PALETTE_SIZE;
+}
+
+GdkRGBA
+gp_color_manager_get_palette_color (GPColorManager *color_manager, gsize pos)
+{
+    g_assert (pos < PALETTE_SIZE);
+
+    return color_manager->palette[pos];
 }

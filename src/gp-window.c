@@ -66,14 +66,6 @@ gp_window_update_action_sensitivity (GPWindow *window)
 }
 
 static void
-on_color_changed (GtkWidget *widget, gpointer user_data)
-{
-    GdkRGBA color;
-    gp_color_selector_box_get_color (GP_COLOR_SELECTOR_BOX (widget), &color);
-    gp_image_editor_set_color (GP_IMAGE_EDITOR (user_data), &color);
-}
-
-static void
 on_canvas_changed (GtkWidget *widget, gpointer user_data)
 {
     gp_window_update_action_sensitivity (GP_WINDOW (user_data));
@@ -138,14 +130,9 @@ gp_window_init (GPWindow *window)
 
     document_manager = gp_document_manager_get_default ();
 
-    g_signal_connect (priv->color_selector_box, "color-changed", G_CALLBACK (on_color_changed), priv->image_editor);
     g_signal_connect (document_manager, "document-status-changed", G_CALLBACK (on_document_status_changed), priv->header_bar);
     g_signal_connect (document_manager, "active-document-changed", G_CALLBACK (on_active_document_changed), window);
     g_signal_connect (priv->image_editor, "canvas-changed", G_CALLBACK (on_canvas_changed), window);
-
-    GdkRGBA color;
-    gp_color_selector_box_get_color (priv->color_selector_box, &color);
-    gp_image_editor_set_color (priv->image_editor, &color);
 
     g_action_map_add_action_entries (G_ACTION_MAP (window),
                                      win_entries,

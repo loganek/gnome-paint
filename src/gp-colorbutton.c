@@ -19,6 +19,7 @@
 #include "config.h"
 
 #include "gp-colorbutton.h"
+#include "gp-marshal.h"
 
 /* Signals */
 enum
@@ -28,8 +29,6 @@ enum
 };
 
 static guint gp_color_button_signals[LAST_SIGNAL] = { 0 };
-
-static void (*double_clicked)(GtkButton*);
 
 struct _GPColorButton
 {
@@ -45,11 +44,11 @@ gp_color_button_button_event (GtkWidget      *widget,
 {
     if (event->type == GDK_2BUTTON_PRESS)
     {
-        double_clicked (GTK_BUTTON (widget));
+        GTK_BUTTON_CLASS (gp_color_button_parent_class)->clicked (GTK_BUTTON (widget));
     }
     else if (event->type == GDK_BUTTON_PRESS)
     {
-        g_signal_emit (widget, gp_color_button_signals[SINGLE_CLICKED], 0);
+        g_signal_emit (widget, gp_color_button_signals[SINGLE_CLICKED], 0, event);
     }
 }
 
@@ -57,13 +56,9 @@ static void
 gp_color_button_init (GPColorButton *color_button)
 {
     g_signal_connect (color_button,
-		      "button-press-event",
-		      G_CALLBACK (gp_color_button_button_event),
-		      NULL);
-    g_signal_connect (color_button,
-		      "button-release-event",
-		      G_CALLBACK (gp_color_button_button_event),
-		      NULL);
+                      "button-press-event",
+                      G_CALLBACK (gp_color_button_button_event),
+                      NULL);
 }
 
 static void
@@ -71,15 +66,15 @@ gp_color_button_class_init (GPColorButtonClass *klass)
 {
     GtkButtonClass *button_class = GTK_BUTTON_CLASS (klass);
 
-    double_clicked = button_class->clicked;
     button_class->clicked = NULL;
 
-    gp_color_button_signals[SINGLE_CLICKED] = g_signal_new ("singleclicked",
-							    G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
-							    G_SIGNAL_RUN_FIRST,
-							    0,
-							    NULL, NULL, NULL,
-							    G_TYPE_NONE, 0);
+    gp_color_button_signals[SINGLE_CLICKED] = g_signal_new ("single-clicked",
+                                                            G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
+                                                            G_SIGNAL_RUN_FIRST,
+                                                            0,
+                                                            NULL, NULL,
+                                                            gp_VOID__BOXED,
+                                                            G_TYPE_NONE, 1, GDK_TYPE_EVENT);
 
 }
 

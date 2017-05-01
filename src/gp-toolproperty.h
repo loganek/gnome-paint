@@ -31,10 +31,12 @@ struct _GPToolPropertyClass
     GObjectClass parent_class;
 
     void (*apply) (GPToolProperty *tool_property,
-                            cairo_t *cairo_context);
+                   cairo_t        *cairo_context);
+    GtkWidget * (*get_widget) (GPToolProperty *tool_property);
 };
 
 void gp_tool_property_apply (GPToolProperty *tool_property, cairo_t *cairo_context);
+GtkWidget * gp_tool_property_get_widget (GPToolProperty *tool_property);
 
 G_END_DECLS
 

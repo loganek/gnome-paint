@@ -125,6 +125,7 @@ gp_window_init (GPWindow *window)
 {
     GPWindowPrivate* priv;
     GPDocumentManager *document_manager;
+
     gtk_widget_init_template (GTK_WIDGET (window));
 
     priv = gp_window_get_instance_private (window);

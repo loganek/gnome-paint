@@ -37,7 +37,14 @@ gp_tool_property_init (GPToolProperty *self)
 {
 }
 
-void gp_tool_property_apply (GPToolProperty *tool_property, cairo_t *cairo_context)
+void
+gp_tool_property_apply (GPToolProperty *tool_property, cairo_t *cairo_context)
 {
     GP_TOOL_PROPERTY_GET_CLASS (tool_property)->apply (tool_property, cairo_context);
+}
+
+GtkWidget *
+gp_tool_property_get_widget (GPToolProperty *tool_property)
+{
+    return GP_TOOL_PROPERTY_GET_CLASS (tool_property)->get_widget (tool_property);
 }

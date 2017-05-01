@@ -23,6 +23,7 @@ struct _GPSizeToolProperty
     GPToolProperty parent_instance;
 
     gdouble size;
+    GtkWidget *widget;
 };
 
 G_DEFINE_TYPE (GPSizeToolProperty, gp_size_tool_property, GP_TYPE_TOOL_PROPERTY)
@@ -34,17 +35,54 @@ gp_size_tool_property_apply (GPToolProperty *self, cairo_t *cairo_context)
 }
 
 static void
+gp_size_tool_property_widget_activated (GtkWidget *widget, GPSizeToolProperty *property)
+{
+    property->size = g_ascii_strtod (gtk_entry_get_text (GTK_ENTRY (widget)), NULL);
+}
+
+static GtkWidget *
+gp_size_tool_get_widget (GPToolProperty *self)
+{
+    GPSizeToolProperty *property = GP_SIZE_TOOL_PROPERTY (self);
+
+    if (property->widget == NULL)
+    {
+        gchar *buf = g_strdup_printf ("%f", property->size);
+        property->widget = gtk_entry_new ();
+        gtk_entry_set_width_chars (GTK_ENTRY (property->widget), 4);
+        gtk_entry_set_text (GTK_ENTRY (property->widget), buf);
+        g_free (buf);
+        g_signal_connect (property->widget, "activate", G_CALLBACK (gp_size_tool_property_widget_activated), property);
+    }
+
+    return g_object_ref (property->widget);
+}
+
+static void
+gp_size_tool_property_finalize (GObject *object)
+{
+    GPSizeToolProperty *self = GP_SIZE_TOOL_PROPERTY (object);
+
+    g_clear_object (&self->widget);
+}
+
+static void
 gp_size_tool_property_init (GPSizeToolProperty *self)
 {
     self->size = 1;
+    self->widget = NULL;
 }
 
 static void
 gp_size_tool_property_class_init (GPSizeToolPropertyClass *klass)
 {
+    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
     GPToolPropertyClass *tool_property_class = GP_TOOL_PROPERTY_CLASS (klass);
 
+    gobject_class->finalize = gp_size_tool_property_finalize;
+
     tool_property_class->apply = gp_size_tool_property_apply;
+    tool_property_class->get_widget = gp_size_tool_get_widget;
 }
 
 GPToolProperty*

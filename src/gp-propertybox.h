@@ -1,4 +1,4 @@
-/* gp-widget-init.c
+/* gp-propertybox.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,24 +16,22 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gp-widget-init.h"
+#ifndef GP_PROPERTY_BOX_H_
+#define GP_PROPERTY_BOX_H_
 
-#include "gp-window.h"
-#include "gp-colorselectorbox.h"
-#include "gp-drawingarea.h"
-#include "gp-toolbox.h"
-#include "gp-imageeditor.h"
-#include "gp-headerbar.h"
-#include "gp-propertybox.h"
+#include <gtk/gtk.h>
 
-void
-gp_widget_gtype_init ()
+G_BEGIN_DECLS
+
+#define GP_TYPE_PROPERTY_BOX (gp_property_box_get_type ())
+G_DECLARE_FINAL_TYPE (GPPropertyBox, gp_property_box, GP, PROPERTY_BOX, GtkBox)
+
+struct _GPPropertyBoxClass
 {
-    gp_window_get_type ();
-    gp_drawing_area_get_type ();
-    gp_color_selector_box_get_type ();
-    gp_tool_box_get_type ();
-    gp_image_editor_get_type ();
-    gp_header_bar_get_type ();
-    gp_property_box_get_type ();
-}
+    GtkBoxClass parent_class;
+};
+
+G_END_DECLS
+
+#endif /* GP_PROPERTY_BOX_H_ */
+

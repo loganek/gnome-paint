@@ -30,8 +30,6 @@ G_DECLARE_FINAL_TYPE (GPToolBox, gp_tool_box, GP, TOOL_BOX, GtkBox)
 
 GtkWidget * gp_tool_box_new (void);
 
-GPTool *gp_tool_box_get_active_tool (GPToolBox *tool_box);
-
 G_END_DECLS
 
 #endif /* GP_TOOL_BOX_H_ */

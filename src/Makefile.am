@@ -21,6 +21,7 @@ gnome_paint_SOURCES =         \
 	gp-linetool.c         \
 	gp-main.c             \
 	gp-marshal.c          \
+	gp-propertybox.c      \
 	gp-rectangleselectiontool.c \
 	gp-rectangletool.c    \
 	gp-selectiontool.c    \

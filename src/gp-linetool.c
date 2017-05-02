@@ -20,6 +20,8 @@
 #include "gp-sizetoolproperty.h"
 #include "gp-cairoutils.h"
 
+#include "gp-shapetool-priv.h"
+
 struct _GPLineTool
 {
     GPShapeTool parent_instance;
@@ -32,8 +34,9 @@ static GdkRectangle
 gp_line_tool_draw (GPShapeTool *tool,
                    cairo_t     *cairo_context)
 {
-    GdkPointD start_point = gp_shape_tool_get_start_point (tool);
-    GdkPointD current_point = gp_shape_tool_get_current_point (tool);
+    GPShapeToolPrivate *priv = gp_shape_tool_get_priv (tool);
+    GdkPointD start_point = priv->start_point;
+    GdkPointD current_point = priv->current_point;
     GdkRectangle bounding_box;
 
     cairo_move_to (cairo_context,

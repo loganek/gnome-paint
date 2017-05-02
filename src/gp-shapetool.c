@@ -21,14 +21,7 @@
 #include "gp-colormanager.h"
 #include "gp-cairoutils.h"
 
-typedef struct
-{
-    GdkPointD start_point;
-    GdkPointD current_point;
-    gboolean grabbed;
-    GdkRectangle prev_bounding_rect;
-    guint trigger_button;
-} GPShapeToolPrivate;
+#include "gp-shapetool-priv.h"
 
 static GdkRectangle zero_rectangle = { 0, 0, 0, 0 };
 
@@ -176,14 +169,8 @@ gp_shape_tool_class_init (GPShapeToolClass *klass)
     klass->draw_shape = NULL;
 }
 
-GdkPointD
-gp_shape_tool_get_start_point (GPShapeTool *tool)
+GPShapeToolPrivate *
+gp_shape_tool_get_priv (GPShapeTool *shape_tool)
 {
-    return GP_SHAPE_TOOL_PRIV (tool)->start_point;
-}
-
-GdkPointD
-gp_shape_tool_get_current_point (GPShapeTool *tool)
-{
-    return GP_SHAPE_TOOL_PRIV (tool)->current_point;
+    return GP_SHAPE_TOOL_PRIV (shape_tool);
 }

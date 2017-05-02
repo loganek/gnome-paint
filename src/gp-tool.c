@@ -128,9 +128,12 @@ gp_tool_apply_properties (GPTool *tool, cairo_t *cairo_context)
 {
     const GPtrArray *properties = gp_tool_get_properties (tool);
 
-    g_ptr_array_foreach ((GPtrArray *) properties,
-                         apply_property,
-                         cairo_context);
+    if (properties != NULL)
+    {
+        g_ptr_array_foreach ((GPtrArray *) properties,
+                             apply_property,
+                             cairo_context);
+    }
 }
 
 const GPtrArray*

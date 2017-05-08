@@ -19,12 +19,12 @@
 #ifndef GP_RECTANGLE_SELECTION_TOOL_H_
 #define GP_RECTANGLE_SELECTION_TOOL_H_
 
-#include "gp-tool.h"
+#include "gp-shapetool.h"
 
 G_BEGIN_DECLS
 
 #define GP_TYPE_RECTANGLE_SELECTION_TOOL (gp_rectangle_selection_tool_get_type ())
-G_DECLARE_FINAL_TYPE (GPRectangleSelectionTool, gp_rectangle_selection_tool, GP, RECTANGLE_SELECTION_TOOL, GPTool)
+G_DECLARE_FINAL_TYPE (GPRectangleSelectionTool, gp_rectangle_selection_tool, GP, RECTANGLE_SELECTION_TOOL, GPShapeTool)
 
 GPTool* gp_rectangle_selection_tool_create ();
 

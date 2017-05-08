@@ -157,30 +157,3 @@ gp_tool_get_canvas_widget (GPTool *tool)
 
     return priv->widget;
 }
-
-void
-gp_tool_set_color (GPTool *tool, const GdkRGBA *fg_color, const GdkRGBA *bg_color)
-{
-    GPToolPrivate *priv = gp_tool_get_instance_private (tool);
-
-    g_return_if_fail (fg_color != NULL);
-    g_return_if_fail (bg_color != NULL);
-
-    priv->fg_color = *fg_color;
-    priv->bg_color = *bg_color;
-}
-
-void
-gp_tool_get_color (GPTool *tool, GdkRGBA *fg_color, GdkRGBA *bg_color)
-{
-    GPToolPrivate *priv = gp_tool_get_instance_private (tool);
-
-    if (fg_color != NULL)
-    {
-        *fg_color = priv->fg_color;
-    }
-    if (bg_color != NULL)
-    {
-        *bg_color = priv->bg_color;
-    }
-}

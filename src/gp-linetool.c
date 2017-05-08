@@ -35,16 +35,14 @@ gp_line_tool_draw (GPShapeTool *tool,
                    cairo_t     *cairo_context)
 {
     GPShapeToolPrivate *priv = gp_shape_tool_get_priv (tool);
-    GdkPointD start_point = priv->start_point;
-    GdkPointD current_point = priv->current_point;
     GdkRectangle bounding_box;
 
     cairo_move_to (cairo_context,
-                   start_point.x,
-                   start_point.y);
+                   priv->start_point.x,
+                   priv->start_point.y);
     cairo_line_to (cairo_context,
-                   current_point.x,
-                   current_point.y);
+                   priv->start_point.x + priv->width,
+                   priv->start_point.y + priv->height);
 
     bounding_box = gp_cairo_stroke_get_bbox (cairo_context);
     cairo_stroke (cairo_context);

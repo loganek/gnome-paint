@@ -70,9 +70,6 @@ const GPtrArray* gp_tool_get_properties (GPTool *tool);
 void gp_tool_set_canvas_widget (GPTool *tool, GtkWidget *widget);
 GtkWidget* gp_tool_get_canvas_widget (GPTool *tool);
 
-void gp_tool_set_color (GPTool *tool, const GdkRGBA *fg_color, const GdkRGBA *bg_color);
-void gp_tool_get_color (GPTool *tool, GdkRGBA *fg_color, GdkRGBA *bg_color);
-
 G_END_DECLS
 
 #endif /* GP_TOOL_H_ */

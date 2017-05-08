@@ -26,6 +26,9 @@ G_BEGIN_DECLS
 GdkRectangle gp_cairo_stroke_get_bbox (cairo_t *cairo_context);
 
 void gp_cairo_surface_clear (cairo_surface_t *surface);
+
+gboolean gp_cairo_point_is_in_rectangle (const cairo_rectangle_t *rect, gdouble x, gdouble y);
+
 G_END_DECLS
 
 #endif /* GP_CAIRO_UTILS_H_ */

@@ -49,6 +49,9 @@ GPDocument * gp_document_create_from_file (const gchar *filename, GError **error
 
 void gp_document_request_update_view (GPDocument *document, const GdkRectangle *bounding_box);
 
+void gp_document_set_selection (GPDocument *document, GdkPixbuf *selection);
+GdkPixbuf* gp_document_get_selection (GPDocument *document);
+
 GPSize gp_document_get_size (GPDocument *document);
 
 G_END_DECLS

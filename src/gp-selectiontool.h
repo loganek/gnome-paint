@@ -23,19 +23,6 @@
 
 G_BEGIN_DECLS
 
-typedef enum {
-    GP_REGION_NONE,
-    GP_REGION_TL_CORNER,
-    GP_REGION_TR_CORNER,
-    GP_REGION_BL_CORNER,
-    GP_REGION_BR_CORNER,
-    GP_REGION_L_SIDE,
-    GP_REGION_R_SIDE,
-    GP_REGION_T_SIDE,
-    GP_REGION_B_SIDE,
-    GP_REGION_INSIDE
-} GPSelectionToolRegion;
-
 #define GP_TYPE_SELECTION_TOOL (gp_selection_tool_get_type ())
 G_DECLARE_INTERFACE (GPSelectionTool, gp_selection_tool, GP, SELECTION_TOOL, GPTool)
 
@@ -45,14 +32,14 @@ struct _GPSelectionToolInterface
 
   GdkPixbuf* (*get_selection) (GPSelectionTool *self);
   void (*clear) (GPSelectionTool *self);
-  GPSelectionToolRegion (*region_in_selection) (GPSelectionTool *self, gdouble x, gdouble y);
+  gboolean (*region_in_selection) (GPSelectionTool *self, gdouble x, gdouble y);
 };
 
 GdkPixbuf* gp_selection_tool_get_selection (GPSelectionTool *self);
 
 void gp_selection_tool_clear (GPSelectionTool *self);
 
-GPSelectionToolRegion gp_selection_tool_region_in_selection (GPSelectionTool *self, gdouble x, gdouble y);
+gboolean gp_selection_tool_region_in_selection (GPSelectionTool *self, gdouble x, gdouble y);
 
 G_END_DECLS
 

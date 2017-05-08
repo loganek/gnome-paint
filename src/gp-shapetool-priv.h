@@ -26,13 +26,20 @@ G_BEGIN_DECLS
 typedef struct
 {
     GdkPointD start_point;
-    GdkPointD current_point;
+    gdouble width;
+    gdouble height;
     gboolean grabbed;
     GdkRectangle prev_bounding_rect;
     guint trigger_button;
 } GPShapeToolPrivate;
 
 GPShapeToolPrivate * gp_shape_tool_get_priv (GPShapeTool *shape_tool);
+
+#define GP_SHAPE_TOOL_PRIV(tool) gp_shape_tool_get_priv (GP_SHAPE_TOOL (tool))
+
+void _gp_shape_tool_clear_tool_layer (GPShapeToolPrivate *self_priv);
+
+void _gp_shape_tool_draw_shape (GPShapeTool *self, cairo_surface_t *draw_surface);
 
 G_END_DECLS
 

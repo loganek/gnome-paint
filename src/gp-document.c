@@ -46,6 +46,7 @@ struct _GPDocument
     gboolean is_dirty;
     cairo_surface_t *base_layer;
     cairo_surface_t *active_layer;
+    GdkPixbuf *selection;
 };
 
 G_DEFINE_TYPE (GPDocument, gp_document, G_TYPE_OBJECT)
@@ -71,6 +72,7 @@ gp_document_init (GPDocument *document)
     document->base_layer = NULL;
     document->is_dirty = FALSE;
     document->filename = NULL;
+    document->selection = NULL;
 }
 
 void
@@ -83,6 +85,7 @@ gp_document_finalize (GObject *gobj)
 
     g_clear_object (&document->active_layer);
     g_clear_object (&document->base_layer);
+    g_clear_object (&document->selection);
 }
 
 static void
@@ -279,6 +282,19 @@ void
 gp_document_request_update_view (GPDocument *document, const GdkRectangle *bounding_box)
 {
     g_signal_emit (document, gp_document_signals[VIEW_UPDATED], 0, bounding_box, NULL);
+}
+
+void
+gp_document_set_selection (GPDocument *document, GdkPixbuf *selection)
+{
+    g_clear_object (&document->selection);
+    document->selection = selection;
+}
+
+GdkPixbuf *
+gp_document_get_selection (GPDocument *document)
+{
+    return document->selection;
 }
 
 GPSize

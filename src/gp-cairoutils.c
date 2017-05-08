@@ -59,3 +59,10 @@ gp_cairo_surface_clear (cairo_surface_t *surface)
     cairo_set_operator (cr, CAIRO_OPERATOR_CLEAR);
     cairo_paint (cr);
 }
+
+gboolean
+gp_cairo_point_is_in_rectangle (const cairo_rectangle_t *rect, gdouble x, gdouble y)
+{
+    return !(x < rect->x || x > rect->x + rect->width
+            || y < rect->y || y > rect->y + rect->height);
+}

@@ -34,9 +34,6 @@ struct _GPShapeToolClass
                                 cairo_t     *cairo_context);
 };
 
-GdkPointD gp_shape_tool_get_start_point (GPShapeTool *tool);
-GdkPointD gp_shape_tool_get_current_point (GPShapeTool *tool);
-
 G_END_DECLS
 
 #endif /* GP_SHAPE_TOOL_H_ */

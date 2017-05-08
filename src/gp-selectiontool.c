@@ -51,7 +51,7 @@ gp_selection_tool_clear (GPSelectionTool *self)
     return iface->clear (self);
 }
 
-GPSelectionToolRegion
+gboolean
 gp_selection_tool_region_in_selection (GPSelectionTool *self, gdouble x, gdouble y)
 {
     GPSelectionToolInterface *iface;

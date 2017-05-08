@@ -36,13 +36,11 @@ gp_rectangle_tool_draw (GPShapeTool  *tool,
 {
     GdkRectangle bbox_rect;
     GPShapeToolPrivate *priv = gp_shape_tool_get_priv (tool);
-    GdkPointD start_point = priv->start_point;
-    GdkPointD current_point = priv->current_point;
 
     cairo_rectangle (cairo_context,
-                     start_point.x, start_point.y,
-                     current_point.x - start_point.x,
-                     current_point.y - start_point.y);
+                     priv->start_point.x, priv->start_point.y,
+                     priv->width,
+                     priv->height);
 
 
     bbox_rect = gp_cairo_stroke_get_bbox (cairo_context);

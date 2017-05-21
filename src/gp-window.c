@@ -56,7 +56,7 @@ static void
 gp_window_update_action_sensitivity (GPWindow *window)
 {
     GPWindowPrivate *priv = gp_window_get_instance_private (window);
-    GAction *action = NULL;
+    GAction *action;
     gboolean selection_enabled = gp_image_editor_get_selection (priv->image_editor, NULL);
 
     action = g_action_map_lookup_action (G_ACTION_MAP (window), "cut");

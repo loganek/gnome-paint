@@ -48,6 +48,6 @@ dist_noinst_DATA = \
 	$(noinst_resource_files)
 
 gp-resource.c gp-resource.h: $(top_srcdir)/data/org.gnome.Paint.gresource.xml Makefile $(noinst_resource_files)
-	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(top_srcdir)/data --generate --c-name gl $<
+	$(AM_V_GEN) $(GLIB_COMPILE_RESOURCES) --target=$@ --sourcedir=$(top_srcdir)/data --generate --c-name gp $<
 
 -include $(top_srcdir)/git.mk

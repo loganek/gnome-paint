@@ -171,7 +171,7 @@ gp_document_save_file (GPDocument *document, const gchar *filename, GError **err
 static cairo_surface_t *
 gp_document_load_surface_from_file (const gchar *filename, GError **error)
 {
-    GdkPixbuf *pixbuf = NULL;
+    GdkPixbuf *pixbuf;
     cairo_surface_t *surface = NULL;
 
     g_assert (error != NULL);
@@ -238,7 +238,7 @@ GPDocument *
 gp_document_create_empty (gint width, gint height)
 {
     GPDocument *document = GP_DOCUMENT (g_object_new (GP_TYPE_DOCUMENT, NULL));
-    cairo_t *cr = NULL;
+    cairo_t *cr;
 
     // TODO cairo_surface_status
     document->base_layer = cairo_image_surface_create (CAIRO_FORMAT_RGB24, width, height);
@@ -257,7 +257,7 @@ GPDocument *
 gp_document_create_from_file (const gchar *filename, GError **error)
 {
     GPDocument *document = NULL;
-    cairo_surface_t *surface = NULL;
+    cairo_surface_t *surface;
 // TODO what if error and surface != null?
     surface = gp_document_load_surface_from_file (filename, error);
     if (*error)

@@ -106,7 +106,7 @@ static gint
 gp_application_command_line (GApplication            *application,
                              GApplicationCommandLine *cl)
 {
-    GVariantDict *options = NULL;
+    GVariantDict *options;
     gchar **remaining_args = NULL;
     GPApplication *self = GP_APPLICATION (application);
 

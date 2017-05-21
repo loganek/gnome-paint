@@ -23,15 +23,15 @@
 void
 gp_dialog_utils_show_error (GtkWindow *window, const gchar *format, ...)
 {
-    GtkWidget *dialog = NULL;
-    gchar *msg = NULL;
+    GtkWidget *dialog;
+    gchar *msg;
     va_list args;
 
     va_start (args, format);
     msg = g_strdup_vprintf (format, args);
     va_end (args);
 
-    gtk_message_dialog_new (GTK_WINDOW (window),
+    dialog = gtk_message_dialog_new (GTK_WINDOW (window),
                             GTK_DIALOG_DESTROY_WITH_PARENT,
                             GTK_MESSAGE_ERROR,
                             GTK_BUTTONS_CLOSE,
@@ -45,7 +45,7 @@ gint
 gp_dialog_utils_show_image_open_dialog (GtkWindow *window, gchar **filename)
 {
     GtkFileChooser *chooser = NULL;
-    GtkWidget *dialog = NULL;
+    GtkWidget *dialog;
     gint res;
 
     g_assert (filename != NULL);

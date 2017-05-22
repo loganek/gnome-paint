@@ -102,9 +102,21 @@ gp_tool_box_tool_added (GPToolManager *tool_manager, GPTool *tool, gpointer user
 }
 
 static void
+gp_tool_box_finalize (GObject *gobj)
+{
+    GPToolBoxPrivate *priv = gp_tool_box_get_instance_private (GP_TOOL_BOX (gobj));
+
+    g_object_unref (priv->tool_manager);
+    g_slist_free (priv->buttons_list); // buttons are managed by a window
+}
+
+static void
 gp_tool_box_class_init (GPToolBoxClass *klass)
 {
+    GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
     GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+
+    gobject_class->finalize = gp_tool_box_finalize;
 
     gtk_widget_class_set_template_from_resource (widget_class,
                                                  "/org/gnome/Paint/gp-toolbox.ui");

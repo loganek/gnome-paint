@@ -21,7 +21,6 @@
 
 #include "gp-documentmanager.h"
 #include "gp-cairoutils.h"
-#include "gp-selectiontool.h"
 #include "gp-colormanager.h"
 
 #define RESIZER_SIZE 10
@@ -41,12 +40,7 @@ struct _GPRectangleSelectionTool
     gboolean is_selected;
 };
 
-static void
-gp_rectangle_selection_tool_interface_init (GPSelectionToolInterface *iface);
-
-G_DEFINE_TYPE_WITH_CODE (GPRectangleSelectionTool, gp_rectangle_selection_tool, GP_TYPE_SHAPE_TOOL,
-                         G_IMPLEMENT_INTERFACE (GP_TYPE_SELECTION_TOOL,
-                                                gp_rectangle_selection_tool_interface_init))
+G_DEFINE_TYPE (GPRectangleSelectionTool, gp_rectangle_selection_tool, GP_TYPE_SHAPE_TOOL)
 
 static void
 _fix_dimension_if_less_than_zero (gdouble *coordinate, gdouble *value)
@@ -165,7 +159,7 @@ gp_line_tool_create_icon (GPTool *tool)
 }
 
 static gboolean
-gp_rectangle_selection_tool_region_in_selection (GPSelectionTool *self, gdouble x, gdouble y)
+gp_rectangle_selection_tool_region_in_selection (GPRectangleSelectionTool *self, gdouble x, gdouble y)
 {
     GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (self);
     cairo_rectangle_t rect = { priv->start_point.x, priv->start_point.y,
@@ -180,7 +174,7 @@ gp_rectangle_selection_tool_button_press (GPTool *tool, GdkEventButton *event, G
     GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
 
     if (selection_tool->is_selected
-            && gp_rectangle_selection_tool_region_in_selection (GP_SELECTION_TOOL (tool), pos.x, pos.y))
+            && gp_rectangle_selection_tool_region_in_selection (selection_tool, pos.x, pos.y))
     {
         GP_SHAPE_TOOL_PRIV (tool)->grabbed = TRUE;
         selection_tool->offset_x = pos.x - GP_SHAPE_TOOL_PRIV (tool)->start_point.x;
@@ -267,25 +261,6 @@ gp_rectangle_selection_tool_deactivate (GPTool *tool)
         gp_rectangle_selection_tool_update_selection (selection_tool, NULL);
         _gp_shape_tool_clear_tool_layer (GP_SHAPE_TOOL_PRIV (tool));
     }
-}
-
-static GdkPixbuf*
-gp_rectangle_selection_tool_get_selection (GPSelectionTool *self)
-{
-    return NULL;
-}
-
-static void
-gp_rectangle_selection_tool_clear (GPSelectionTool *self)
-{
-}
-
-static void
-gp_rectangle_selection_tool_interface_init (GPSelectionToolInterface *iface)
-{
-    iface->get_selection = gp_rectangle_selection_tool_get_selection;
-    iface->clear = gp_rectangle_selection_tool_clear;
-    iface->region_in_selection = gp_rectangle_selection_tool_region_in_selection;
 }
 
 static void

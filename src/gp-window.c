@@ -55,9 +55,10 @@ static GActionEntry win_entries[] = {
 static void
 gp_window_update_action_sensitivity (GPWindow *window)
 {
-    GPWindowPrivate *priv = gp_window_get_instance_private (window);
+    GPDocumentManager *document_manager = gp_document_manager_get_default ();
+    GPDocument *active_document = gp_document_manager_get_active_document (document_manager);
+    gboolean selection_enabled = active_document != NULL && gp_document_get_selection (active_document) != NULL;
     GAction *action;
-    gboolean selection_enabled = gp_image_editor_get_selection (priv->image_editor, NULL);
 
     action = g_action_map_lookup_action (G_ACTION_MAP (window), "cut");
     g_simple_action_set_enabled (G_SIMPLE_ACTION (action), selection_enabled);

@@ -20,7 +20,6 @@
 
 #include "gp-imageeditor.h"
 #include "gp-drawingarea.h"
-#include "gp-selectiontool.h"
 #include "gp-marshal.h"
 #include "gp-toolmanager.h"
 
@@ -208,45 +207,6 @@ GtkWidget *
 gp_image_editor_new (void)
 {
     return g_object_new (GP_TYPE_IMAGE_EDITOR, NULL);
-}
-
-gboolean
-gp_image_editor_get_selection (GPImageEditor *image_editor, GdkPixbuf **out_pixbuf)
-{
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (image_editor));
-    GdkPixbuf *pixbuf = NULL;
-
-    if (GP_IS_SELECTION_TOOL (priv->tool) == FALSE)
-    {
-        return FALSE;
-    }
-
-    pixbuf = gp_selection_tool_get_selection (GP_SELECTION_TOOL (priv->tool));
-
-    if (pixbuf != NULL)
-    {
-        if (out_pixbuf == NULL)
-        {
-            g_object_unref (pixbuf);
-        }
-        else
-        {
-            *out_pixbuf = pixbuf;
-        }
-        return TRUE;
-    }
-
-    return FALSE;
-}
-
-void
-gp_image_editor_clear_selection (GPImageEditor *image_editor)
-{
-    GPImageEditorPrivate *priv = GP_IMAGE_EDITOR_PRIV (GP_IMAGE_EDITOR (image_editor));
-
-    g_return_if_fail (GP_IS_SELECTION_TOOL (priv->tool) == TRUE);
-
-    gp_selection_tool_clear (GP_SELECTION_TOOL (priv->tool));
 }
 
 void

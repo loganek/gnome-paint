@@ -131,11 +131,10 @@ gp_rectangle_selection_tool_update_selection (GPRectangleSelectionTool *selectio
                                               GdkPixbuf                *selection)
 {
     GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
-    selection = selection == NULL ? NULL : g_object_ref (selection);
 
     g_clear_object (&selection_tool->selection);
     selection_tool->selection = selection;
-    gp_document_set_selection (document, selection);
+    gp_document_set_selection (document, selection == NULL ? NULL : g_object_ref (selection));
 }
 
 static void
@@ -211,14 +210,22 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
     _fix_dimension_if_less_than_zero (&priv->start_point.x, &priv->width);
     _fix_dimension_if_less_than_zero (&priv->start_point.y, &priv->height);
 
-    if (!selection_tool->is_selected && priv->width > 0 && priv->height > 0)
+    if (!selection_tool->is_selected)
     {
-        GdkPixbuf *selection = gdk_pixbuf_get_from_surface (gp_document_get_surface (document),
-                                                            priv->start_point.x, priv->start_point.y,
-                                                            (gint)priv->width + SELECTION_MARGIN, (gint)priv->height + SELECTION_MARGIN);
-        gp_rectangle_selection_tool_update_selection (selection_tool, selection);
+        if (priv->width > 0 && priv->height > 0)
+        {
+            GdkPixbuf *selection = gdk_pixbuf_get_from_surface (gp_document_get_surface (document),
+                                                                priv->start_point.x, priv->start_point.y,
+                                                                (gint)priv->width + SELECTION_MARGIN, (gint)priv->height + SELECTION_MARGIN);
+            gp_rectangle_selection_tool_update_selection (selection_tool, selection);
+            selection_tool->is_selected = TRUE;
+        }
+        else
+        {
+            gp_rectangle_selection_tool_update_selection (selection_tool, NULL);
+        }
+
         selection_tool->root_point = priv->start_point;
-        selection_tool->is_selected = TRUE;
     }
 
     priv->grabbed = FALSE;

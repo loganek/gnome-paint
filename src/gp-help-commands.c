@@ -84,7 +84,7 @@ gp_help_commands_about (GSimpleAction *action,
                            "comments", _("Simple Paint for GNOME"),
                            "copyright", "Copyright © 2017 Marcin Kolny <marcin.kolny@gmail.com>",
                            "license-type", GTK_LICENSE_GPL_3_0,
-                           "logo-icon-name", PACKAGE_TARNAME,
+                           "logo-icon-name", PACKAGE_NAME,
                            "version", PACKAGE_VERSION,
                            "website", PACKAGE_URL, NULL);
 }

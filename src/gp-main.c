@@ -29,10 +29,10 @@ int main(int   argc,
     int status;
 
     bindtextdomain (GETTEXT_PACKAGE, LOCALEDIR);
-    bind_textdomain_codeset (PACKAGE_TARNAME, "UTF-8");
+    bind_textdomain_codeset (PACKAGE_NAME, "UTF-8");
     textdomain (GETTEXT_PACKAGE);
 
-    g_set_prgname (PACKAGE_TARNAME);
+    g_set_prgname (PACKAGE_NAME);
     application = gp_application_new ();
     status = g_application_run (G_APPLICATION (application), argc, argv);
     g_object_unref (application);

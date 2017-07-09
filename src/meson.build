@@ -18,6 +18,7 @@ gp_sources = [
   'gp-documentmanager.c',
   'gp-drawhistoryitem.c',
   'gp-drawingarea.c',
+  'gp-fillshapeproperty.c',
   'gp-headerbar.c',
   'gp-help-commands.c',
   'gp-history.c',

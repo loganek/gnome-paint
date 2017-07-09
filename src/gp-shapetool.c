@@ -79,7 +79,7 @@ _gp_shape_tool_draw_shape (GPShapeTool *self, cairo_surface_t *draw_surface)
     cr = cairo_create (draw_surface);
     gp_shape_tool_load_drawing_color (priv, cr);
     cairo_set_antialias (cr, CAIRO_ANTIALIAS_NONE);
-    gp_tool_apply_properties (GP_TOOL (self), cr);
+
     bounding_rect = gp_shape_tool_draw (GP_SHAPE_TOOL (self), cr);
     cairo_destroy (cr);
 

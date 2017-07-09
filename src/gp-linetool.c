@@ -28,6 +28,11 @@ struct _GPLineTool
     GPtrArray *properties;
 };
 
+typedef enum
+{
+    TOOL_PROPERTY_SIZE = 0,
+} ToolProperties;
+
 G_DEFINE_TYPE (GPLineTool, gp_line_tool, GP_TYPE_SHAPE_TOOL)
 
 static GdkRectangle
@@ -36,6 +41,8 @@ gp_line_tool_draw (GPShapeTool *tool,
 {
     GPShapeToolPrivate *priv = gp_shape_tool_get_priv (tool);
     GdkRectangle bounding_box;
+
+    gp_size_tool_property_apply (GP_SIZE_TOOL_PROPERTY (GP_LINE_TOOL (tool)->properties->pdata[TOOL_PROPERTY_SIZE]), cairo_context);
 
     cairo_move_to (cairo_context,
                    priv->start_point.x,

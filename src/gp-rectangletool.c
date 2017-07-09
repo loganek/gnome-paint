@@ -18,6 +18,7 @@
 
 #include "gp-rectangletool.h"
 #include "gp-sizetoolproperty.h"
+#include "gp-fillshapeproperty.h"
 #include "gp-cairoutils.h"
 
 #include "gp-shapetool-priv.h"
@@ -28,6 +29,12 @@ struct _GPRectangleTool
     GPtrArray *properties;
 };
 
+typedef enum
+{
+    TOOL_PROPERTY_SIZE = 0,
+    TOOL_PROPERTY_FILL = 1
+} ToolProperties;
+
 G_DEFINE_TYPE (GPRectangleTool, gp_rectangle_tool, GP_TYPE_SHAPE_TOOL)
 
 static GdkRectangle
@@ -37,6 +44,8 @@ gp_rectangle_tool_draw (GPShapeTool  *tool,
     GdkRectangle bbox_rect;
     GPShapeToolPrivate *priv = gp_shape_tool_get_priv (tool);
 
+    gp_size_tool_property_apply (GP_SIZE_TOOL_PROPERTY (GP_RECTANGLE_TOOL (tool)->properties->pdata[TOOL_PROPERTY_SIZE]), cairo_context);
+
     cairo_rectangle (cairo_context,
                      priv->start_point.x, priv->start_point.y,
                      priv->width,
@@ -45,7 +54,7 @@ gp_rectangle_tool_draw (GPShapeTool  *tool,
 
     bbox_rect = gp_cairo_stroke_get_bbox (cairo_context);
 
-    cairo_stroke (cairo_context);
+    gp_fill_shape_property_execute (GP_FILL_SHAPE_PROPERTY (GP_RECTANGLE_TOOL (tool)->properties->pdata[TOOL_PROPERTY_FILL]), cairo_context);
 
     return bbox_rect;
 }
@@ -83,6 +92,7 @@ gp_rectangle_tool_init (GPRectangleTool *self)
     self->properties = g_ptr_array_new_with_free_func (gp_rectangle_tool_free_property);
 
     g_ptr_array_add (self->properties, gp_size_tool_property_create ());
+    g_ptr_array_add (self->properties, gp_fill_shape_property_create ());
 }
 
 static void

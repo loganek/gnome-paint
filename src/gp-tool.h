@@ -63,8 +63,6 @@ void gp_tool_activate (GPTool *tool);
 
 void gp_tool_deactivate (GPTool *tool);
 
-void gp_tool_apply_properties (GPTool *tool, cairo_t *cairo_context);
-
 const GPtrArray* gp_tool_get_properties (GPTool *tool);
 
 void gp_tool_set_canvas_widget (GPTool *tool, GtkWidget *widget);

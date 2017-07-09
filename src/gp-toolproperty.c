@@ -21,26 +21,13 @@
 G_DEFINE_TYPE (GPToolProperty, gp_tool_property, G_TYPE_OBJECT)
 
 static void
-gp_tool_property_default_apply_property (GPToolProperty *tool_property,
-                                         cairo_t        *cairo_context)
-{
-}
-
-static void
 gp_tool_property_class_init (GPToolPropertyClass *klass)
 {
-    klass->apply = gp_tool_property_default_apply_property;
 }
 
 static void
 gp_tool_property_init (GPToolProperty *self)
 {
-}
-
-void
-gp_tool_property_apply (GPToolProperty *tool_property, cairo_t *cairo_context)
-{
-    GP_TOOL_PROPERTY_GET_CLASS (tool_property)->apply (tool_property, cairo_context);
 }
 
 GtkWidget *

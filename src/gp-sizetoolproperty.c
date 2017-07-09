@@ -185,12 +185,6 @@ struct _GPSizeToolProperty
 G_DEFINE_TYPE (GPSizeToolProperty, gp_size_tool_property, GP_TYPE_TOOL_PROPERTY)
 
 static void
-gp_size_tool_property_apply (GPToolProperty *self, cairo_t *cairo_context)
-{
-    cairo_set_line_width (cairo_context, GP_SIZE_TOOL_PROPERTY (self)->size);
-}
-
-static void
 gp_size_tool_property_widget_value_changed (GPSizeToolPropertyWidget *widget, GPSizeToolProperty *property)
 {
     gint value;
@@ -236,7 +230,6 @@ gp_size_tool_property_class_init (GPSizeToolPropertyClass *klass)
 
     gobject_class->finalize = gp_size_tool_property_finalize;
 
-    tool_property_class->apply = gp_size_tool_property_apply;
     tool_property_class->get_widget = gp_size_tool_get_widget;
 }
 
@@ -246,8 +239,8 @@ gp_size_tool_property_create ()
     return  GP_TOOL_PROPERTY (g_object_new (GP_TYPE_SIZE_TOOL_PROPERTY, NULL));
 }
 
-gdouble
-gp_size_tool_property_get_size (GPSizeToolProperty *property)
+void
+gp_size_tool_property_apply (GPSizeToolProperty *self, cairo_t *cairo_context)
 {
-    return property->size;
+    cairo_set_line_width (cairo_context, self->size);
 }

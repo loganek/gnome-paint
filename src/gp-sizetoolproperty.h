@@ -28,7 +28,7 @@ G_DECLARE_FINAL_TYPE (GPSizeToolProperty, gp_size_tool_property, GP, SIZE_TOOL_P
 
 GPToolProperty* gp_size_tool_property_create ();
 
-gdouble gp_size_tool_property_get_size (GPSizeToolProperty *property);
+void gp_size_tool_property_apply (GPSizeToolProperty *self, cairo_t *cairo_context);
 
 G_END_DECLS
 

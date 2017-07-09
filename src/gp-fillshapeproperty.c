@@ -20,11 +20,70 @@
 
 #include "gp-colormanager.h"
 
+#define GP_TYPE_FILL_SHAPE_PROPERTY_WIDGET (gp_fill_shape_property_widget_get_type ())
+G_DECLARE_FINAL_TYPE (GPFillShapePropertyWidget, gp_fill_shape_property_widget, GP, FILL_SHAPE_PROPERTY_WIDGET, GtkListBox)
+
+struct _GPFillShapePropertyWidget
+{
+    GtkListBox parent_instance;
+
+    GtkWidget *options[GP_FILL_SHAPE_TYPE_LAST];
+};
+
+G_DEFINE_TYPE (GPFillShapePropertyWidget, gp_fill_shape_property_widget, GTK_TYPE_LIST_BOX)
+
+static void
+_create_fill_shape_widget_option (GPFillShapePropertyWidget *widget, const gchar *resource_path, GPFillShapeType type)
+{
+    GtkWidget *row = gtk_list_box_row_new ();
+    gtk_container_add (GTK_CONTAINER (row), gtk_image_new_from_resource (resource_path));
+    widget->options[type] = row;
+    gtk_list_box_insert (GTK_LIST_BOX (widget), row, type);
+}
+
+static void
+gp_fill_shape_property_widget_init (GPFillShapePropertyWidget *self)
+{
+    _create_fill_shape_widget_option (self, "/org/gnome/Paint/propertyicons/nofillrectangle.png", GP_FILL_SHAPE_TYPE_NO_FILL);
+    _create_fill_shape_widget_option (self, "/org/gnome/Paint/propertyicons/fillbgrectangle.png", GP_FILL_SHAPE_TYPE_FILL_WITH_BG_COLOR);
+    _create_fill_shape_widget_option (self, "/org/gnome/Paint/propertyicons/fillfgrectangle.png", GP_FILL_SHAPE_TYPE_FILL_WITH_FG_COLOR);
+}
+
+static void
+gp_fill_shape_property_widget_class_init (GPFillShapePropertyWidgetClass *klass)
+{
+}
+
+static void
+gp_fill_shape_property_widget_set_fill_type (GPFillShapePropertyWidget *widget, GPFillShapeType type)
+{
+    g_return_if_fail (type < GP_FILL_SHAPE_TYPE_LAST && type >= 0);
+
+    gtk_list_box_select_row (GTK_LIST_BOX (widget), GTK_LIST_BOX_ROW (widget->options[type]));
+}
+
+GPFillShapeType
+gp_fill_shape_property_widget_get_fill_type (GPFillShapePropertyWidget *widget)
+{
+    GtkWidget *row = GTK_WIDGET (gtk_list_box_get_selected_row (GTK_LIST_BOX (widget)));
+    gint i;
+
+    for (i = 0; i < GP_FILL_SHAPE_TYPE_LAST; i++)
+    {
+        if (widget->options[i] == row)
+        {
+            return i;
+        }
+    }
+
+    g_return_val_if_reached (GP_FILL_SHAPE_TYPE_LAST);
+}
+
 struct _GPFillShapeProperty
 {
     GPToolProperty parent_instance;
 
-    GPFillShapeType fill_type;
+    GtkWidget *widget;
 };
 
 G_DEFINE_TYPE (GPFillShapeProperty, gp_fill_shape_property, GP_TYPE_TOOL_PROPERTY)
@@ -32,18 +91,24 @@ G_DEFINE_TYPE (GPFillShapeProperty, gp_fill_shape_property, GP_TYPE_TOOL_PROPERT
 static GtkWidget *
 gp_fill_shape_property_get_widget (GPToolProperty *self)
 {
-    return gtk_label_new ("TODO: FIXME");
+    GPFillShapeProperty *property = GP_FILL_SHAPE_PROPERTY (self);
+
+    return g_object_ref (property->widget);
 }
 
 static void
 gp_fill_shape_property_finalize (GObject *object)
 {
+    GPFillShapeProperty *self = GP_FILL_SHAPE_PROPERTY (object);
+
+    g_clear_object (&self->widget);
 }
 
 static void
 gp_fill_shape_property_init (GPFillShapeProperty *self)
 {
-    self->fill_type = GP_FILL_SHAPE_TYPE_NO_FILL;
+    self->widget = GTK_WIDGET (g_object_new (GP_TYPE_FILL_SHAPE_PROPERTY_WIDGET, NULL));
+    gp_fill_shape_property_widget_set_fill_type (GP_FILL_SHAPE_PROPERTY_WIDGET (self->widget), GP_FILL_SHAPE_TYPE_NO_FILL);
 }
 
 static void
@@ -71,7 +136,7 @@ gp_fill_shape_property_execute (GPFillShapeProperty *property, cairo_t *cairo_co
 
     gp_color_manager_get_color (color_manager, NULL, &bg_color);
 
-    switch (property->fill_type)
+    switch (gp_fill_shape_property_widget_get_fill_type (GP_FILL_SHAPE_PROPERTY_WIDGET (property->widget)))
     {
     case GP_FILL_SHAPE_TYPE_NO_FILL:
         cairo_stroke (cairo_context);

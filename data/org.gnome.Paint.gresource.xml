@@ -16,4 +16,9 @@
     <file>toolicons/rectangle.png</file>
     <file>toolicons/rectangleselection.png</file>
   </gresource>
+  <gresource prefix='/org/gnome/Paint'> <!-- propertyicons -->
+    <file>propertyicons/nofillrectangle.png</file>
+    <file>propertyicons/fillfgrectangle.png</file>
+    <file>propertyicons/fillbgrectangle.png</file>
+  </gresource>
 </gresources>

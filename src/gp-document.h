@@ -19,6 +19,8 @@
 #ifndef GP_DOCUMENT_H_
 #define GP_DOCUMENT_H_
 
+#include "gp-history.h"
+
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
@@ -32,7 +34,7 @@ typedef struct
     guint height;
 } GPSize;
 
-void gp_document_set_is_dirty (GPDocument *document, gboolean is_dirty);
+void gp_document_update_is_dirty (GPDocument *document);
 gboolean gp_document_get_is_dirty (GPDocument *document);
 
 gchar* gp_document_get_filename (GPDocument *document);
@@ -50,9 +52,11 @@ GPDocument * gp_document_create_from_file (const gchar *filename, GError **error
 void gp_document_request_update_view (GPDocument *document, const GdkRectangle *bounding_box);
 
 void gp_document_set_selection (GPDocument *document, GdkPixbuf *selection);
-GdkPixbuf* gp_document_get_selection (GPDocument *document);
+GdkPixbuf * gp_document_get_selection (GPDocument *document);
 
 GPSize gp_document_get_size (GPDocument *document);
+
+GPHistory * gp_document_get_history (GPDocument *document);
 
 G_END_DECLS
 

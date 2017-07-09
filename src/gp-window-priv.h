@@ -1,4 +1,4 @@
-/* gp-imageeditor.h
+/* gp-window-priv.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,29 +16,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_IMAGE_EDITOR_H_
-#define GP_IMAGE_EDITOR_H_
+#ifndef GP_WINDOW_PRIV_H_
+#define GP_WINDOW_PRIV_H_
 
-#include "gp-tool.h"
-#include "gp-document.h"
-
-#include <gtk/gtk.h>
+#include "gp-imageeditor.h"
+#include "gp-toolbox.h"
+#include "gp-colorselectorbox.h"
+#include "gp-headerbar.h"
+#include "gp-window.h"
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_IMAGE_EDITOR (gp_image_editor_get_type ())
-G_DECLARE_FINAL_TYPE (GPImageEditor, gp_image_editor, GP, IMAGE_EDITOR, GtkFixed)
+typedef struct
+{
+    GPImageEditor *image_editor;
+    GPToolBox *tool_box;
+    GPColorSelectorBox *color_selector_box;
+    GPHeaderBar *header_bar;
+} GPWindowPrivate;
 
-GtkWidget* gp_image_editor_new (void);
+GPWindowPrivate * gp_window_get_priv (GPWindow *window);
 
-void gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color);
-
-void gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool);
-
-void gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document);
-
-void gp_image_editor_external_modification (GPImageEditor *image_editor);
+#define GP_WINDOW_PRIV(window) gp_window_get_priv (GP_WINDOW (window))
 
 G_END_DECLS
 
-#endif /* GP_DRAWING_AREA_H_ */
+#endif /* GP_WINDOW_PRIV_H_ */

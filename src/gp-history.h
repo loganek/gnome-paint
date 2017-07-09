@@ -1,4 +1,4 @@
-/* gp-imageeditor.h
+/* gp-history.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,29 +16,37 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_IMAGE_EDITOR_H_
-#define GP_IMAGE_EDITOR_H_
+#ifndef GP_HISTORY_H_
+#define GP_HISTORY_H_
 
-#include "gp-tool.h"
-#include "gp-document.h"
+#include "gp-historyitem.h"
 
-#include <gtk/gtk.h>
+#include <glib-object.h>
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_IMAGE_EDITOR (gp_image_editor_get_type ())
-G_DECLARE_FINAL_TYPE (GPImageEditor, gp_image_editor, GP, IMAGE_EDITOR, GtkFixed)
+#define GP_TYPE_HISTORY (gp_history_get_type ())
+G_DECLARE_FINAL_TYPE (GPHistory, gp_history, GP, HISTORY, GObject)
 
-GtkWidget* gp_image_editor_new (void);
+GPHistory * gp_history_new (void);
 
-void gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color);
+/**
+ * Add an item to a history.
+ *
+ * @item (transfer full): history item.
+ */
+void gp_history_add_item (GPHistory *history, GPHistoryItem *item);
 
-void gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool);
+gboolean gp_history_can_undo (GPHistory *history);
 
-void gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document);
+void gp_history_undo (GPHistory *history);
 
-void gp_image_editor_external_modification (GPImageEditor *image_editor);
+gboolean gp_history_can_redo (GPHistory *history);
+
+void gp_history_redo (GPHistory *history);
+
+guint gp_history_get_pointer (GPHistory *history);
 
 G_END_DECLS
 
-#endif /* GP_DRAWING_AREA_H_ */
+#endif /* GP_HISTORY_H_ */

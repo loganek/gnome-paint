@@ -21,6 +21,7 @@
 #include "gp-documentmanager.h"
 #include "gp-window-commands.h"
 #include "gp-window.h"
+#include "gp-window-priv.h"
 #include "gp-dialogutils.h"
 
 void _gp_cmd_open (GSimpleAction *action,
@@ -130,5 +131,51 @@ void _gp_cmd_paste (GSimpleAction *action,
                     GVariant      *parameter,
                     gpointer       user_data)
 {
+    GPDocumentManager *document_manager = gp_document_manager_get_default ();
+    GPDocument *active_document = gp_document_manager_get_active_document (document_manager);
+    GPHistory *history = gp_document_get_history (active_document);
 
+    g_return_if_fail (gp_history_can_redo (history));
+
+    gp_history_redo (history);
+    // TODO request only updated region
+    gp_document_request_update_view (active_document, NULL);
+}
+
+void _gp_cmd_undo (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+    GPDocumentManager *document_manager = gp_document_manager_get_default ();
+    GPDocument *active_document = gp_document_manager_get_active_document (document_manager);
+    GPHistory *history = gp_document_get_history (active_document);
+    GPWindowPrivate *priv = GP_WINDOW_PRIV (user_data);
+
+    g_return_if_fail (gp_history_can_undo (history));
+
+    gp_history_undo (history);
+
+    gp_image_editor_external_modification (priv->image_editor);
+
+    // TODO request only updated region
+    gp_document_request_update_view (active_document, NULL);
+}
+
+void _gp_cmd_redo (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data)
+{
+    GPDocumentManager *document_manager = gp_document_manager_get_default ();
+    GPDocument *active_document = gp_document_manager_get_active_document (document_manager);
+    GPHistory *history = gp_document_get_history (active_document);
+    GPWindowPrivate *priv = GP_WINDOW_PRIV (user_data);
+
+    g_return_if_fail (gp_history_can_redo (history));
+
+    gp_history_redo (history);
+
+    gp_image_editor_external_modification (priv->image_editor);
+
+    // TODO request only updated region
+    gp_document_request_update_view (active_document, NULL);
 }

@@ -1,4 +1,4 @@
-/* gp-imageeditor.h
+/* gp-drawhistoryitem.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,29 +16,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_IMAGE_EDITOR_H_
-#define GP_IMAGE_EDITOR_H_
+#ifndef GP_DRAW_HISTORY_ITEM_H_
+#define GP_DRAW_HISTORY_ITEM_H_
 
-#include "gp-tool.h"
-#include "gp-document.h"
+#include "gp-historyitem.h"
 
-#include <gtk/gtk.h>
+#include <gdk/gdk.h>
 
 G_BEGIN_DECLS
 
-#define GP_TYPE_IMAGE_EDITOR (gp_image_editor_get_type ())
-G_DECLARE_FINAL_TYPE (GPImageEditor, gp_image_editor, GP, IMAGE_EDITOR, GtkFixed)
+#define GP_TYPE_DRAW_HISTORY_ITEM (gp_draw_history_item_get_type ())
+G_DECLARE_FINAL_TYPE (GPDrawHistoryItem, gp_draw_history_item, GP, DRAW_HISTORY_ITEM, GPHistoryItem)
 
-GtkWidget* gp_image_editor_new (void);
-
-void gp_image_editor_set_color (GPImageEditor *image_editor, const GdkRGBA *color);
-
-void gp_image_editor_set_tool (GPImageEditor *image_editor, GPTool *tool);
-
-void gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document);
-
-void gp_image_editor_external_modification (GPImageEditor *image_editor);
+GPHistoryItem* gp_draw_history_item_create (cairo_surface_t *surface);
 
 G_END_DECLS
 
-#endif /* GP_DRAWING_AREA_H_ */
+#endif /* GP_DRAW_HISTORY_ITEM_H_ */

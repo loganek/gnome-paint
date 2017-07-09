@@ -20,6 +20,7 @@
 #include "gp-documentmanager.h"
 #include "gp-colormanager.h"
 #include "gp-cairoutils.h"
+#include "gp-drawhistoryitem.h"
 
 #include "gp-shapetool-priv.h"
 
@@ -112,6 +113,8 @@ gp_shape_tool_button_release (GPTool *self, GdkEventButton *event, GdkPointD pos
 {
     GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (self);
     GPDocument *document;
+    GPHistory *history;
+    cairo_surface_t *surface;
 
     if (!priv->grabbed)
     {
@@ -119,10 +122,12 @@ gp_shape_tool_button_release (GPTool *self, GdkEventButton *event, GdkPointD pos
     }
 
     document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+    surface = gp_document_get_surface (document);
 
-    _gp_shape_tool_draw_shape (GP_SHAPE_TOOL (self), gp_document_get_surface (document));
+    history = gp_document_get_history (document);
+    gp_history_add_item (history, gp_draw_history_item_create (surface));
 
-    gp_document_set_is_dirty (document, TRUE);
+    _gp_shape_tool_draw_shape (GP_SHAPE_TOOL (self), surface);
 
     priv->grabbed = FALSE;
     priv->prev_bounding_rect = zero_rectangle;

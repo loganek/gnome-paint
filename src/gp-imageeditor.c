@@ -230,3 +230,9 @@ gp_image_editor_set_document (GPImageEditor *image_editor, GPDocument *document)
 
     gtk_widget_set_size_request (GTK_WIDGET (priv->resizer), doc_size.width + RESIZE_MARGIN, doc_size.height + RESIZE_MARGIN);
 }
+
+void
+gp_image_editor_external_modification (GPImageEditor *image_editor)
+{
+    g_signal_emit (image_editor, gp_image_editor_signals[CANVAS_CHANGED], 0);
+}

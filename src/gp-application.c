@@ -174,6 +174,8 @@ gp_application_startup (GApplication *application)
     add_accelerator (GTK_APPLICATION (application), "win.copy",  "<Primary>c");
     add_accelerator (GTK_APPLICATION (application), "win.cut",   "<Primary>x");
     add_accelerator (GTK_APPLICATION (application), "win.paste", "<Primary>v");
+    add_accelerator (GTK_APPLICATION (application), "win.undo",  "<Primary>z");
+    add_accelerator (GTK_APPLICATION (application), "win.redo",  "<Primary>y");
 }
 
 

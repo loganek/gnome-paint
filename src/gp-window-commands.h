@@ -47,6 +47,14 @@ void _gp_cmd_paste (GSimpleAction *action,
                     GVariant      *parameter,
                     gpointer       user_data);
 
+void _gp_cmd_undo (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data);
+
+void _gp_cmd_redo (GSimpleAction *action,
+                   GVariant      *parameter,
+                   gpointer       user_data);
+
 G_END_DECLS
 
 #endif /* GP_WINDOW_COMMANDS_H_ */

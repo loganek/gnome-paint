@@ -16,12 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "gp-window.h"
+#include "gp-window-priv.h"
 
 #include "gp-documentmanager.h"
-#include "gp-toolbox.h"
-#include "gp-colorselectorbox.h"
-#include "gp-headerbar.h"
 #include "gp-dialogutils.h"
 #include "gp-window-commands.h"
 
@@ -33,14 +30,6 @@ struct _GPWindow
     GtkApplicationWindow parent_instance;
 };
 
-typedef struct
-{
-    GPImageEditor *image_editor;
-    GPToolBox *tool_box;
-    GPColorSelectorBox *color_selector_box;
-    GPHeaderBar *header_bar;
-} GPWindowPrivate;
-
 G_DEFINE_TYPE_WITH_PRIVATE (GPWindow, gp_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static GActionEntry win_entries[] = {
@@ -49,8 +38,16 @@ static GActionEntry win_entries[] = {
     { "save", _gp_cmd_save, NULL, NULL, NULL, {} },
     { "cut", _gp_cmd_cut, NULL, NULL, NULL, {} },
     { "copy", _gp_cmd_copy, NULL, NULL, NULL, {} },
-    { "paste", _gp_cmd_paste, NULL, NULL, NULL, {} }
+    { "paste", _gp_cmd_paste, NULL, NULL, NULL, {} },
+    { "undo", _gp_cmd_undo, NULL, NULL, NULL, {} },
+    { "redo", _gp_cmd_redo, NULL, NULL, NULL, {} }
 };
+
+GPWindowPrivate *
+gp_window_get_priv (GPWindow *window)
+{
+    return gp_window_get_instance_private (window);
+}
 
 static void
 gp_window_update_action_sensitivity (GPWindow *window)
@@ -59,17 +56,36 @@ gp_window_update_action_sensitivity (GPWindow *window)
     GPDocument *active_document = gp_document_manager_get_active_document (document_manager);
     gboolean selection_enabled = active_document != NULL && gp_document_get_selection (active_document) != NULL;
     GAction *action;
+    gboolean can_undo = FALSE;
+    gboolean can_redo = FALSE;
 
     action = g_action_map_lookup_action (G_ACTION_MAP (window), "cut");
     g_simple_action_set_enabled (G_SIMPLE_ACTION (action), selection_enabled);
 
     action = g_action_map_lookup_action (G_ACTION_MAP (window), "copy");
     g_simple_action_set_enabled (G_SIMPLE_ACTION (action), selection_enabled);
+
+    if (active_document != NULL)
+    {
+        GPHistory *history = gp_document_get_history (active_document);
+        can_undo = gp_history_can_undo (history);
+        can_redo = gp_history_can_redo (history);
+    }
+
+    action = g_action_map_lookup_action (G_ACTION_MAP (window), "undo");
+    g_simple_action_set_enabled (G_SIMPLE_ACTION (action), can_undo);
+
+    action = g_action_map_lookup_action (G_ACTION_MAP (window), "redo");
+    g_simple_action_set_enabled (G_SIMPLE_ACTION (action), can_redo);
 }
 
 static void
 on_canvas_changed (GtkWidget *widget, gpointer user_data)
 {
+    GPDocumentManager *document_manager = gp_document_manager_get_default ();
+    GPDocument *active_document = gp_document_manager_get_active_document (document_manager);
+    gp_document_update_is_dirty (active_document);
+
     gp_window_update_action_sensitivity (GP_WINDOW (user_data));
 }
 

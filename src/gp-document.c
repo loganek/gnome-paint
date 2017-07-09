@@ -47,6 +47,8 @@ struct _GPDocument
     cairo_surface_t *base_layer;
     cairo_surface_t *active_layer;
     GdkPixbuf *selection;
+    GPHistory *history;
+    guint history_save_pointer;
 };
 
 G_DEFINE_TYPE (GPDocument, gp_document, G_TYPE_OBJECT)
@@ -73,6 +75,8 @@ gp_document_init (GPDocument *document)
     document->is_dirty = FALSE;
     document->filename = NULL;
     document->selection = NULL;
+    document->history = gp_history_new ();
+    document->history_save_pointer = gp_history_get_pointer (document->history);
 }
 
 void
@@ -86,6 +90,7 @@ gp_document_finalize (GObject *gobj)
     g_clear_object (&document->active_layer);
     g_clear_object (&document->base_layer);
     g_clear_object (&document->selection);
+    g_clear_object (&document->history);
 }
 
 static void
@@ -120,8 +125,10 @@ gp_document_class_init (GPDocumentClass *klass)
 }
 
 void
-gp_document_set_is_dirty (GPDocument *document, gboolean is_dirty)
+gp_document_update_is_dirty (GPDocument *document)
 {
+    gboolean is_dirty = gp_history_get_pointer (document->history) != document->history_save_pointer;
+
     if (document->is_dirty == is_dirty)
     {
         return;
@@ -165,7 +172,9 @@ gp_document_save_file (GPDocument *document, const gchar *filename, GError **err
     gdk_pixbuf_save (pixbuf, filename, "png", error, NULL); // TODO possible formats can be loaded automatically (see documentation), support parameters
 
     gp_document_set_filename (document, filename);
-    gp_document_set_is_dirty (document, FALSE);
+    document->history_save_pointer = gp_history_get_pointer (document->history);
+    gp_document_update_is_dirty (document);
+    document->history_save_pointer = gp_history_get_pointer (document->history);
 }
 
 static cairo_surface_t *
@@ -281,7 +290,20 @@ cleanup:
 void
 gp_document_request_update_view (GPDocument *document, const GdkRectangle *bounding_box)
 {
-    g_signal_emit (document, gp_document_signals[VIEW_UPDATED], 0, bounding_box, NULL);
+    GdkRectangle rect;
+
+    if (bounding_box == NULL)
+    {
+        rect.width = cairo_image_surface_get_width (document->base_layer);
+        rect.height = cairo_image_surface_get_height (document->base_layer);
+        rect.x = rect.y = 0;
+    }
+    else
+    {
+        rect = *bounding_box;
+    }
+
+    g_signal_emit (document, gp_document_signals[VIEW_UPDATED], 0, &rect, NULL);
 }
 
 void
@@ -306,4 +328,10 @@ gp_document_get_size (GPDocument *document)
     size.height = cairo_image_surface_get_height (document->base_layer);
 
     return size;
+}
+
+GPHistory *
+gp_document_get_history (GPDocument *document)
+{
+    return document->history;
 }

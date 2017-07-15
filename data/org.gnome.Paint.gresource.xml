@@ -20,5 +20,10 @@
     <file>propertyicons/nofillrectangle.png</file>
     <file>propertyicons/fillfgrectangle.png</file>
     <file>propertyicons/fillbgrectangle.png</file>
+    <file>propertyicons/size_1.png</file>
+    <file>propertyicons/size_2.png</file>
+    <file>propertyicons/size_3.png</file>
+    <file>propertyicons/size_5.png</file>
+    <file>propertyicons/size_7.png</file>
   </gresource>
 </gresources>

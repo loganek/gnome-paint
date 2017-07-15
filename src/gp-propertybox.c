@@ -42,6 +42,7 @@ gp_property_box_remove_children (GPPropertyBox *self)
 static void
 gp_property_box_load_tool_properties (GPPropertyBox *property_box, const GPtrArray *properties)
 {
+    GtkBox *box = GTK_BOX (property_box);
     guint i;
 
     gp_property_box_remove_children (property_box);
@@ -54,7 +55,8 @@ gp_property_box_load_tool_properties (GPPropertyBox *property_box, const GPtrArr
     for (i = 0; i < properties->len; i++)
     {
         GPToolProperty *property = GP_TOOL_PROPERTY (g_ptr_array_index (properties, i));
-        gtk_box_pack_start (GTK_BOX (property_box), gp_tool_property_get_widget (property), FALSE, TRUE, 0);
+        gtk_box_pack_start (box, gp_tool_property_get_widget (property), FALSE, TRUE, 0);
+        gtk_box_pack_start (box, gtk_separator_new (GTK_ORIENTATION_HORIZONTAL), FALSE, TRUE, 0);
     }
 
     gtk_widget_show_all (GTK_WIDGET (property_box));

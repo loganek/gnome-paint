@@ -29,6 +29,8 @@ void gp_cairo_surface_clear (cairo_surface_t *surface);
 
 gboolean gp_cairo_point_is_in_rectangle (const cairo_rectangle_t *rect, gdouble x, gdouble y);
 
+void gp_cairo_repaint_surface (cairo_surface_t *from, cairo_surface_t *to, double x, double y);
+
 G_END_DECLS
 
 #endif /* GP_CAIRO_UTILS_H_ */

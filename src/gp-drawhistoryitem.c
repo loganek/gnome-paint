@@ -19,6 +19,7 @@
 #include "gp-drawhistoryitem.h"
 
 #include "gp-document.h"
+#include "gp-cairoutils.h"
 
 struct _GPDrawHistoryItem
 {
@@ -40,24 +41,12 @@ gp_draw_history_item_copy_surface (cairo_surface_t *surface)
 }
 
 static void
-gp_draw_history_item_repaint (cairo_surface_t *from, cairo_surface_t *to)
-{
-    cairo_t *cairo_context = cairo_create (to);
-    cairo_set_source_surface (cairo_context,
-                              from,
-                              0, 0);
-
-    cairo_paint (cairo_context);
-    cairo_destroy (cairo_context);
-}
-
-static void
 gp_draw_history_item_swap (GPDrawHistoryItem *draw_history_item, cairo_surface_t *doc_surface)
 {
     cairo_surface_t *new_surface = gp_draw_history_item_copy_surface (doc_surface);
-    gp_draw_history_item_repaint (doc_surface, new_surface);
+    gp_cairo_repaint_surface (doc_surface, new_surface, 0, 0);
 
-    gp_draw_history_item_repaint (draw_history_item->prev_surface, doc_surface);
+    gp_cairo_repaint_surface (draw_history_item->prev_surface, doc_surface, 0, 0);
 
     cairo_surface_destroy (draw_history_item->prev_surface);
     draw_history_item->prev_surface = new_surface;

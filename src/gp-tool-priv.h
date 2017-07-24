@@ -1,4 +1,4 @@
-/* gp-shapetool-priv.h
+/* gp-tool-priv.h
  *
  * Copyright (C) 2017 Marcin Kolny
  *
@@ -16,29 +16,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GP_SHAPE_TOOL_PRIV_H_
-#define GP_SHAPE_TOOL_PRIV_H_
+#ifndef GP_TOOL_PRIV_H_
+#define GP_TOOL_PRIV_H_
 
-#include "gp-shapetool.h"
+#include <gdk/gdk.h>
 
 G_BEGIN_DECLS
 
-typedef struct
-{
-    GdkPointD start_point;
-    gdouble width;
-    gdouble height;
-    gboolean grabbed;
-    GdkRectangle prev_bounding_rect;
-    guint trigger_button;
-} GPShapeToolPrivate;
+void _gp_tool_load_drawing_color (gint button, cairo_t *cr);
 
-GPShapeToolPrivate * gp_shape_tool_get_priv (GPShapeTool *shape_tool);
-
-#define GP_SHAPE_TOOL_PRIV(tool) gp_shape_tool_get_priv (GP_SHAPE_TOOL (tool))
-
-void _gp_shape_tool_draw_shape (GPShapeTool *self, cairo_surface_t *draw_surface);
+void _gp_tool_clear_tool_layer (const GdkRectangle *bounding_rect);
 
 G_END_DECLS
 
-#endif /* GP_SHAPE_TOOL_PRIV_H_ */
+#endif // GP_TOOL_PRIV_H_

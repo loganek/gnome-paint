@@ -19,6 +19,10 @@
 #include "gp-tool.h"
 #include "gp-toolproperty.h"
 
+#include "gp-documentmanager.h"
+#include "gp-colormanager.h"
+#include "gp-cairoutils.h"
+
 typedef struct
 {
     GtkWidget *widget;
@@ -137,4 +141,30 @@ gp_tool_get_canvas_widget (GPTool *tool)
     GPToolPrivate *priv = gp_tool_get_instance_private (tool);
 
     return priv->widget;
+}
+
+void
+_gp_tool_load_drawing_color (gint button, cairo_t *cr)
+{
+    GPColorManager *manager = gp_color_manager_default ();
+    GdkRGBA color;
+    GdkRGBA bg_color;
+
+    gp_color_manager_get_color (manager, &color, &bg_color);
+
+    if (button != GDK_BUTTON_PRIMARY)
+    {
+        color = bg_color;
+    }
+
+    cairo_set_source_rgba (cr, color.red, color.green, color.blue, color.alpha);
+}
+
+void
+_gp_tool_clear_tool_layer (const GdkRectangle *bounding_rect)
+{
+    GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+
+    gp_cairo_surface_clear (gp_document_get_tool_surface (document));
+    gp_document_request_update_view (document, bounding_rect);
 }

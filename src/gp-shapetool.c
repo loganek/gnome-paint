@@ -23,36 +23,11 @@
 #include "gp-drawhistoryitem.h"
 
 #include "gp-shapetool-priv.h"
+#include "gp-tool-priv.h"
 
 static GdkRectangle zero_rectangle = { 0, 0, 0, 0 };
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GPShapeTool, gp_shape_tool, GP_TYPE_TOOL)
-
-static void
-gp_shape_tool_load_drawing_color (GPShapeToolPrivate *self_priv, cairo_t *cr)
-{
-    GPColorManager *manager = gp_color_manager_default ();
-    GdkRGBA color;
-    GdkRGBA bg_color;
-
-    gp_color_manager_get_color (manager, &color, &bg_color);
-
-    if (self_priv->trigger_button != GDK_BUTTON_PRIMARY)
-    {
-        color = bg_color;
-    }
-
-    cairo_set_source_rgba (cr, color.red, color.green, color.blue, color.alpha);
-}
-
-void
-_gp_shape_tool_clear_tool_layer (GPShapeToolPrivate *self_priv)
-{
-    GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
-
-    gp_cairo_surface_clear (gp_document_get_tool_surface (document));
-    gp_document_request_update_view (document, &self_priv->prev_bounding_rect);
-}
 
 static GdkRectangle
 gp_shape_tool_draw (GPShapeTool *tool, cairo_t *cairo_context)
@@ -74,10 +49,10 @@ _gp_shape_tool_draw_shape (GPShapeTool *self, cairo_surface_t *draw_surface)
 
     document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
 
-    _gp_shape_tool_clear_tool_layer (priv);
+    _gp_tool_clear_tool_layer (&priv->prev_bounding_rect);
 
     cr = cairo_create (draw_surface);
-    gp_shape_tool_load_drawing_color (priv, cr);
+    _gp_tool_load_drawing_color (priv->trigger_button, cr);
     cairo_set_antialias (cr, CAIRO_ANTIALIAS_NONE);
 
     bounding_rect = gp_shape_tool_draw (GP_SHAPE_TOOL (self), cr);
@@ -96,7 +71,7 @@ gp_shape_tool_button_press (GPTool *self, GdkEventButton *event, GdkPointD pos)
     if (priv->grabbed && priv->trigger_button != event->button)
     {
         priv->grabbed = FALSE;
-        _gp_shape_tool_clear_tool_layer (priv);
+        _gp_tool_clear_tool_layer (&priv->prev_bounding_rect);
         return;
     }
 

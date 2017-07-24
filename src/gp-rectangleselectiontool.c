@@ -18,6 +18,7 @@
 
 #include "gp-rectangleselectiontool.h"
 #include "gp-shapetool-priv.h"
+#include "gp-tool-priv.h"
 
 #include "gp-documentmanager.h"
 #include "gp-cairoutils.h"
@@ -266,7 +267,7 @@ gp_rectangle_selection_tool_deactivate (GPTool *tool)
         gp_rectangle_selection_tool_apply_motion (selection_tool);
         selection_tool->is_selected = FALSE;
         gp_rectangle_selection_tool_update_selection (selection_tool, NULL);
-        _gp_shape_tool_clear_tool_layer (GP_SHAPE_TOOL_PRIV (tool));
+        _gp_tool_clear_tool_layer (&(GP_SHAPE_TOOL_PRIV (tool)->prev_bounding_rect));
     }
 }
 

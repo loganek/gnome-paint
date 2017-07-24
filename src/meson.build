@@ -27,6 +27,7 @@ gp_sources = [
   'gp-linetool.c',
   'gp-main.c',
   'gp-marshal.c',
+  'gp-pentool.c',
   'gp-propertybox.c',
   'gp-rectangleselectiontool.c',
   'gp-rectangletool.c',

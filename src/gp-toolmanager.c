@@ -24,6 +24,7 @@
 #include "gp-linetool.h"
 #include "gp-rectangletool.h"
 #include "gp-rectangleselectiontool.h"
+#include "gp-pentool.h"
 
 /* Signals */
 enum
@@ -89,6 +90,7 @@ gp_tool_manager_create_default_tool_set (GPToolManager *self)
     gp_tool_manager_add_tool (self, gp_line_tool_create ());
     gp_tool_manager_add_tool (self, gp_rectangle_tool_create ());
     gp_tool_manager_add_tool (self, gp_rectangle_selection_tool_create ());
+    gp_tool_manager_add_tool (self, gp_pen_tool_create ());
 }
 
 static void

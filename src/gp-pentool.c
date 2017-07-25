@@ -22,6 +22,7 @@
 #include "gp-documentmanager.h"
 #include "gp-colormanager.h"
 #include "gp-cairoutils.h"
+#include "gp-drawhistoryitem.h"
 
 struct _GPPenTool
 {
@@ -35,6 +36,8 @@ struct _GPPenTool
 };
 
 G_DEFINE_TYPE (GPPenTool, gp_pen_tool, GP_TYPE_TOOL)
+
+// TODO !! ADD UNDO REDO SUPPORT
 
 static void
 _gp_pen_tool_draw (GPPenTool *pen_tool, cairo_surface_t *surface, GdkPointD pos)
@@ -85,16 +88,26 @@ gp_pen_tool_button_release (GPTool         *tool,
 {
     GPPenTool *pen_tool = GP_PEN_TOOL (tool);
     GPDocument *document;
+    GPHistory *history;
+    cairo_surface_t *surface;
+    cairo_surface_t *tool_surface;
 
     if (!pen_tool->grabbed)
     {
         return;
     }
 
+
     document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+    surface = gp_document_get_surface (document);
+    tool_surface = gp_document_get_tool_surface (document);
+
+    history = gp_document_get_history (document);
+    gp_history_add_item (history, gp_draw_history_item_create (surface));
 
     // TODO not 0, 0!
-    gp_cairo_repaint_surface (gp_document_get_tool_surface (document), gp_document_get_surface (document), 0, 0);
+    gp_cairo_repaint_surface (tool_surface, surface, 0, 0);
+    gp_cairo_surface_clear (tool_surface);
 
     pen_tool->grabbed = FALSE;
 }

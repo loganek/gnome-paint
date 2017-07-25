@@ -123,7 +123,14 @@ GPTool * gp_tool_manager_get_active_tool (GPToolManager *tool_manager)
 
 void gp_tool_manager_set_active_tool (GPToolManager *tool_manager, GPTool *tool)
 {
-    GSList *found_tool = g_slist_find (tool_manager->tools, tool);
+    GSList *found_tool;
+
+    if (tool == tool_manager->active_tool)
+    {
+        return;
+    }
+
+    found_tool = g_slist_find (tool_manager->tools, tool);
 
     g_return_if_fail (found_tool != NULL);
 

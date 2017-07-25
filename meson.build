@@ -5,7 +5,7 @@ project('gnome-builder', 'c',
   default_options: [
     'c_std=gnu11',
     'cpp_std=c++11',
-    'warning_level=2',
+    'warning_level=3',
   ],
 )
 

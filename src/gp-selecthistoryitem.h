@@ -19,7 +19,7 @@
 #ifndef GP_SELECT_HISTORY_ITEM_H_
 #define GP_SELECT_HISTORY_ITEM_H_
 
-#include "gp-historyitem.h"
+#include "gp-drawhistoryitem.h"
 #include "gp-iselectiontool.h"
 
 #include <gdk/gdk.h>
@@ -27,7 +27,7 @@
 G_BEGIN_DECLS
 
 #define GP_TYPE_SELECT_HISTORY_ITEM (gp_select_history_item_get_type ())
-G_DECLARE_FINAL_TYPE (GPSelectHistoryItem, gp_select_history_item, GP, SELECT_HISTORY_ITEM, GPHistoryItem)
+G_DECLARE_FINAL_TYPE (GPSelectHistoryItem, gp_select_history_item, GP, SELECT_HISTORY_ITEM, GPDrawHistoryItem)
 
 GPHistoryItem* gp_select_history_item_create (GPISelectionTool *selection_tool,
                                               cairo_surface_t  *surface,

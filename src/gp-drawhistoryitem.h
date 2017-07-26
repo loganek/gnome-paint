@@ -26,7 +26,15 @@
 G_BEGIN_DECLS
 
 #define GP_TYPE_DRAW_HISTORY_ITEM (gp_draw_history_item_get_type ())
-G_DECLARE_FINAL_TYPE (GPDrawHistoryItem, gp_draw_history_item, GP, DRAW_HISTORY_ITEM, GPHistoryItem)
+G_DECLARE_DERIVABLE_TYPE (GPDrawHistoryItem, gp_draw_history_item, GP, DRAW_HISTORY_ITEM, GPHistoryItem)
+
+struct _GPDrawHistoryItemClass
+{
+    GPHistoryItemClass parent_instance;
+
+    void (*swap) (GPDrawHistoryItem *history_item, GPDocument *document);
+};
+
 
 GPHistoryItem* gp_draw_history_item_create (cairo_surface_t *surface);
 

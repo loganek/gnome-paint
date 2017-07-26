@@ -19,19 +19,18 @@
 #include "gp-selecthistoryitem.h"
 
 #include "gp-document.h"
-#include "gp-iselectiontool.h"
 #include "gp-toolmanager.h"
 #include "gp-cairoutils.h"
 
 struct _GPSelectHistoryItem
 {
-    GPHistoryItem parent_instance;
+    GPDrawHistoryItem parent_instance;
+
     GPISelectionTool *tool;
-    cairo_surface_t *prev_surface;
     gpointer selection_params;
 };
 
-G_DEFINE_TYPE (GPSelectHistoryItem, gp_select_history_item, GP_TYPE_HISTORY_ITEM)
+G_DEFINE_TYPE (GPSelectHistoryItem, gp_select_history_item, GP_TYPE_DRAW_HISTORY_ITEM)
 
 static void
 _set_active_tool (GPSelectHistoryItem *history_item)
@@ -50,33 +49,13 @@ _apply_selection (GPSelectHistoryItem *history_item)
 }
 
 static void
-_swap (GPSelectHistoryItem *history_item, GPDocument *document)
+gp_select_history_item_swap (GPDrawHistoryItem *history_item, GPDocument *document)
 {
-    cairo_surface_t *new_surface;
-    cairo_surface_t *doc_surface = gp_document_get_surface (document);
+    GPSelectHistoryItem *select_history_item = GP_SELECT_HISTORY_ITEM (history_item);
+    GP_DRAW_HISTORY_ITEM_CLASS (gp_select_history_item_parent_class)->swap (history_item, document);
 
-    new_surface = gp_cairo_copy_image_surface (doc_surface);
-    gp_cairo_repaint_surface (doc_surface, new_surface, 0, 0);
-
-    gp_cairo_repaint_surface (history_item->prev_surface, doc_surface, 0, 0);
-
-    cairo_surface_destroy (history_item->prev_surface);
-    history_item->prev_surface = new_surface;
-
-    _set_active_tool (history_item);
-    _apply_selection (history_item);
-}
-
-static void
-gp_select_history_item_undo (GPHistoryItem *history_item, GPDocument *document)
-{
-    _swap (GP_SELECT_HISTORY_ITEM (history_item), document);
-}
-
-static void
-gp_select_history_item_redo (GPHistoryItem *history_item, GPDocument *document)
-{
-    _swap (GP_SELECT_HISTORY_ITEM (history_item), document);
+    _set_active_tool (select_history_item);
+    _apply_selection (select_history_item);
 }
 
 static void
@@ -99,27 +78,21 @@ gp_select_history_item_finalize (GObject *gobj)
 static void
 gp_select_history_item_class_init (GPSelectHistoryItemClass *klass)
 {
-    GPHistoryItemClass *history_item_class = GP_HISTORY_ITEM_CLASS (klass);
+    GPDrawHistoryItemClass *history_item_class = GP_DRAW_HISTORY_ITEM_CLASS (klass);
     GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
 
-    history_item_class->undo = gp_select_history_item_undo;
-    history_item_class->redo = gp_select_history_item_redo;
+    history_item_class->swap = gp_select_history_item_swap;
 
     gobject_class->finalize = gp_select_history_item_finalize;
 }
 
-// TODO this class should inherit from the drawhistoryitem
 GPHistoryItem*
 gp_select_history_item_create (GPISelectionTool *selection_tool, cairo_surface_t *surface, gpointer selection_params)
 {
-    GPSelectHistoryItem *select_history_item = g_object_new (GP_TYPE_SELECT_HISTORY_ITEM, NULL);
+    GPSelectHistoryItem *select_history_item = g_object_new (GP_TYPE_SELECT_HISTORY_ITEM, "surface", surface, NULL);
 
     select_history_item->tool = g_object_ref (selection_tool);
     select_history_item->selection_params = selection_params;
-
-    // TODO clip only modified region
-    select_history_item->prev_surface = gp_cairo_copy_image_surface (surface);
-    gp_cairo_repaint_surface (surface, select_history_item->prev_surface, 0, 0);
 
     return GP_HISTORY_ITEM (select_history_item);
 }

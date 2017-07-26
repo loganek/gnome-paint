@@ -30,20 +30,11 @@ struct _GPDrawHistoryItem
 
 G_DEFINE_TYPE (GPDrawHistoryItem, gp_draw_history_item, GP_TYPE_HISTORY_ITEM)
 
-static cairo_surface_t *
-gp_draw_history_item_copy_surface (cairo_surface_t *surface)
-{
-    gint width = cairo_image_surface_get_width (surface);
-    gint height = cairo_image_surface_get_height (surface);
-    cairo_format_t format = cairo_image_surface_get_format (surface);
-
-    return cairo_surface_create_similar_image (surface, format, width, height);
-}
-
 static void
-gp_draw_history_item_swap (GPDrawHistoryItem *draw_history_item, cairo_surface_t *doc_surface)
+gp_draw_history_item_swap (GPDrawHistoryItem *draw_history_item, GPDocument *document)
 {
-    cairo_surface_t *new_surface = gp_draw_history_item_copy_surface (doc_surface);
+    cairo_surface_t *doc_surface = gp_document_get_surface (document);
+    cairo_surface_t *new_surface = gp_cairo_copy_image_surface (doc_surface);
     gp_cairo_repaint_surface (doc_surface, new_surface, 0, 0);
 
     gp_cairo_repaint_surface (draw_history_item->prev_surface, doc_surface, 0, 0);
@@ -55,13 +46,13 @@ gp_draw_history_item_swap (GPDrawHistoryItem *draw_history_item, cairo_surface_t
 static void
 gp_draw_history_item_undo (GPHistoryItem *history_item, GPDocument *document)
 {
-    gp_draw_history_item_swap (GP_DRAW_HISTORY_ITEM (history_item), gp_document_get_surface (document));
+    gp_draw_history_item_swap (GP_DRAW_HISTORY_ITEM (history_item), document);
 }
 
 static void
 gp_draw_history_item_redo (GPHistoryItem *history_item, GPDocument *document)
 {
-    gp_draw_history_item_swap (GP_DRAW_HISTORY_ITEM (history_item), gp_document_get_surface (document));
+    gp_draw_history_item_swap (GP_DRAW_HISTORY_ITEM (history_item), document);
 }
 
 static void
@@ -98,14 +89,10 @@ GPHistoryItem*
 gp_draw_history_item_create (cairo_surface_t *surface)
 {
     GPDrawHistoryItem *item = GP_DRAW_HISTORY_ITEM (g_object_new (GP_TYPE_DRAW_HISTORY_ITEM, NULL));
-    cairo_t *cr;
 
     // TODO clip only modified region
-    item->prev_surface = gp_draw_history_item_copy_surface (surface);
-    cr = cairo_create (item->prev_surface);
-    cairo_set_source_surface (cr, surface, 0, 0);
-    cairo_paint (cr);
-    cairo_destroy (cr);
+    item->prev_surface = gp_cairo_copy_image_surface (surface);
+    gp_cairo_repaint_surface (surface, item->prev_surface, 0, 0);
 
     return GP_HISTORY_ITEM (item);
 }

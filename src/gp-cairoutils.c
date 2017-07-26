@@ -78,3 +78,13 @@ gp_cairo_repaint_surface (cairo_surface_t *from, cairo_surface_t *to, double x, 
     cairo_paint (cairo_context);
     cairo_destroy (cairo_context);
 }
+
+cairo_surface_t *
+gp_cairo_copy_image_surface (cairo_surface_t* surface)
+{
+    gint width = cairo_image_surface_get_width (surface);
+    gint height = cairo_image_surface_get_height (surface);
+    cairo_format_t format = cairo_image_surface_get_format (surface);
+
+    return cairo_surface_create_similar_image (surface, format, width, height);
+}

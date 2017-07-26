@@ -31,6 +31,7 @@ gboolean gp_cairo_point_is_in_rectangle (const cairo_rectangle_t *rect, gdouble 
 
 void gp_cairo_repaint_surface (cairo_surface_t *from, cairo_surface_t *to, double x, double y);
 
+cairo_surface_t * gp_cairo_copy_image_surface (cairo_surface_t* surface);
 G_END_DECLS
 
 #endif /* GP_CAIRO_UTILS_H_ */

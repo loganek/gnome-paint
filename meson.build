@@ -1,4 +1,4 @@
-project('gnome-builder', 'c',
+project('gnome-paint', 'c',
   license: 'GPL3',
   version: '0.1',
   meson_version: '>= 0.40.1',

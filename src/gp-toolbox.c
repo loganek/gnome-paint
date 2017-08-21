@@ -97,8 +97,10 @@ gp_tool_box_tool_added (GPToolManager *tool_manager, GPTool *tool, gpointer user
     {
         priv->buttons_list = gtk_radio_button_get_group (GTK_RADIO_BUTTON (btn));
     }
-
-    priv->buttons_list = g_slist_append (priv->buttons_list, btn);
+    else
+    {
+        priv->buttons_list = gtk_radio_button_get_group (GTK_RADIO_BUTTON (priv->buttons_list->data));
+    }
 }
 
 static void
@@ -107,7 +109,6 @@ gp_tool_box_finalize (GObject *gobj)
     GPToolBoxPrivate *priv = gp_tool_box_get_instance_private (GP_TOOL_BOX (gobj));
 
     g_object_unref (priv->tool_manager);
-    g_slist_free (priv->buttons_list); // buttons are managed by a window
 }
 
 static void
@@ -133,7 +134,6 @@ gp_tool_box_init (GPToolBox *tool_box)
 
     priv->buttons_list = NULL;
     priv->set_active_tts = FALSE;
-    // TODO finalize
     priv->tool_manager = g_object_ref (gp_tool_manager_default ());
 
     g_signal_connect (priv->tool_manager, "tool-added", G_CALLBACK (gp_tool_box_tool_added), tool_box);

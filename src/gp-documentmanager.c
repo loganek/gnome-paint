@@ -76,7 +76,7 @@ gp_document_manager_class_init (GPDocumentManagerClass *klass)
                           0,
                           NULL,
                           NULL,
-                          gp_VOID__BOXED,
+                          gp_VOID__OBJECT,
                           G_TYPE_NONE, 1, GP_TYPE_DOCUMENT);
 
     gp_document_manager_signals[ACTIVE_DOCUMENT_CHANGED] =

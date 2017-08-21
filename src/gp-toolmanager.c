@@ -79,7 +79,7 @@ gp_tool_manager_class_init (GPToolManagerClass *klass)
                                                         G_TYPE_FROM_CLASS (G_OBJECT_CLASS (klass)),
                                                         G_SIGNAL_RUN_FIRST,
                                                         0,
-                                                        NULL, NULL, gp_VOID__BOXED,
+                                                        NULL, NULL, gp_VOID__OBJECT,
                                                         G_TYPE_NONE, 1, GP_TYPE_TOOL);
 
 }

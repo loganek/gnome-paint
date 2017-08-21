@@ -16,6 +16,9 @@ G_BEGIN_DECLS
 #define gp_VOID__BOOLEAN	g_cclosure_marshal_VOID__BOOLEAN
 #define gp_VOID__BOOL	gp_VOID__BOOLEAN
 
+/* VOID:STRING (./marshal.list:4) */
+#define gp_VOID__OBJECT	g_cclosure_marshal_VOID__OBJECT
+
 G_END_DECLS
 
 #endif /* __gp_MARSHAL_H__ */

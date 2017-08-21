@@ -1,6 +1,6 @@
 project('gnome-paint', 'c',
   license: 'GPL3',
-  version: '0.1',
+  version: '0.1.0',
   meson_version: '>= 0.40.1',
   default_options: [
     'c_std=gnu11',

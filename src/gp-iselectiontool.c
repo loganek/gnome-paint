@@ -1,6 +1,6 @@
 #include "gp-iselectiontool.h"
 
-G_DEFINE_INTERFACE (GPISelectionTool, gp_iselection_tool, G_TYPE_OBJECT);
+G_DEFINE_INTERFACE (GPISelectionTool, gp_iselection_tool, G_TYPE_OBJECT)
 
 static void
 gp_iselection_tool_default_init (GPISelectionToolInterface *iface)

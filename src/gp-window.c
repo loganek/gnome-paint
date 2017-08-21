@@ -33,14 +33,14 @@ struct _GPWindow
 G_DEFINE_TYPE_WITH_PRIVATE (GPWindow, gp_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static GActionEntry win_entries[] = {
-    { "open", _gp_cmd_open, NULL, NULL, NULL, {} },
-    { "save-as", _gp_cmd_save_as, NULL, NULL, NULL, {} },
-    { "save", _gp_cmd_save, NULL, NULL, NULL, {} },
-    { "cut", _gp_cmd_cut, NULL, NULL, NULL, {} },
-    { "copy", _gp_cmd_copy, NULL, NULL, NULL, {} },
-    { "paste", _gp_cmd_paste, NULL, NULL, NULL, {} },
-    { "undo", _gp_cmd_undo, NULL, NULL, NULL, {} },
-    { "redo", _gp_cmd_redo, NULL, NULL, NULL, {} }
+    { "open", _gp_cmd_open, NULL, NULL, NULL, {0} },
+    { "save-as", _gp_cmd_save_as, NULL, NULL, NULL, {0} },
+    { "save", _gp_cmd_save, NULL, NULL, NULL, {0} },
+    { "cut", _gp_cmd_cut, NULL, NULL, NULL, {0} },
+    { "copy", _gp_cmd_copy, NULL, NULL, NULL, {0} },
+    { "paste", _gp_cmd_paste, NULL, NULL, NULL, {0} },
+    { "undo", _gp_cmd_undo, NULL, NULL, NULL, {0} },
+    { "redo", _gp_cmd_redo, NULL, NULL, NULL, {0} }
 };
 
 GPWindowPrivate *

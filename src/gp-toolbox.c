@@ -71,7 +71,7 @@ gp_tool_box_tool_changed (GPToolManager *tool_manager, gpointer user_data)
         start = start->next;
     }
 
-    g_warning ("Corresponding button in toolbox doesn't exist for tool %p", active_tool);
+    g_warning ("Corresponding button in toolbox doesn't exist for tool %p", (void*)active_tool);
 }
 
 static void

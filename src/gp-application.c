@@ -144,10 +144,10 @@ gp_application_handle_local_options (GApplication *application,
 }
 
 static GActionEntry actions[] = {
-    { "shortcuts", gp_help_commands_keyboard_shortcuts, NULL, NULL, NULL, {} },
-    { "help", gp_help_commands_help, NULL, NULL, NULL, {} },
-    { "about", gp_help_commands_about, NULL, NULL, NULL, {} },
-    { "quit", on_quit, NULL, NULL, NULL, {} }
+    { "shortcuts", gp_help_commands_keyboard_shortcuts, NULL, NULL, NULL, {0} },
+    { "help", gp_help_commands_help, NULL, NULL, NULL, {0} },
+    { "about", gp_help_commands_about, NULL, NULL, NULL, {0} },
+    { "quit", on_quit, NULL, NULL, NULL, {0} }
 };
 
 static void

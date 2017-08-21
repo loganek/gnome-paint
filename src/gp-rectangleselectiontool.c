@@ -23,10 +23,12 @@
 #include "gp-documentmanager.h"
 #include "gp-cairoutils.h"
 #include "gp-colormanager.h"
+#include "gp-selecthistoryitem.h"
+#include "gp-iselectiontool.h"
 
 #define RESIZER_SIZE 10
 
-// TODO It can't be constant, but hast to be width/height/x/y dependent
+// TODO It can't be constant, but has to be width/height/x/y dependent
 // We do two 'double to int" casts (for (x, y) and (width, height)
 #define SELECTION_MARGIN 2
 
@@ -39,9 +41,37 @@ struct _GPRectangleSelectionTool
     GdkPointD root_point;
     GdkPixbuf *selection;
     gboolean is_selected;
+    gboolean session;
 };
 
-G_DEFINE_TYPE (GPRectangleSelectionTool, gp_rectangle_selection_tool, GP_TYPE_SHAPE_TOOL)
+typedef struct
+{
+    GdkPointD origin_point;
+    GdkPointD current_point;
+    gdouble selection_width;
+    gdouble selection_height;
+} GPRectangleSelectionParams;
+
+static GPRectangleSelectionParams *
+_get_rectangle_selection_params (GPRectangleSelectionTool *tool)
+{
+    GPShapeToolPrivate *priv = gp_shape_tool_get_priv (GP_SHAPE_TOOL (tool));
+    GPRectangleSelectionParams *params;
+
+    params = g_malloc (sizeof(GPRectangleSelectionParams));
+    params->origin_point = tool->root_point;
+    params->current_point = priv->start_point;
+    params->selection_width = priv->width;
+    params->selection_height = priv->height;
+
+    return params;
+}
+
+static void
+gp_rectangle_selection_tool_iselection_tool_init (GPISelectionToolInterface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (GPRectangleSelectionTool, gp_rectangle_selection_tool, GP_TYPE_SHAPE_TOOL,
+                         G_IMPLEMENT_INTERFACE (GP_TYPE_ISELECTION_TOOL, gp_rectangle_selection_tool_iselection_tool_init))
 
 static void
 _fix_dimension_if_less_than_zero (gdouble *coordinate, gdouble *value)
@@ -176,12 +206,30 @@ gp_rectangle_selection_tool_button_press (GPTool *tool, GdkEventButton *event, G
     if (selection_tool->is_selected
             && gp_rectangle_selection_tool_region_in_selection (selection_tool, pos.x, pos.y))
     {
+        if (!selection_tool->session)
+        {
+            selection_tool->session = TRUE;
+            GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+            GPHistory *history = gp_document_get_history (document);
+            gp_history_add_item (history,
+                                 gp_select_history_item_create (
+                                     GP_ISELECTION_TOOL (tool),
+                                     gp_document_get_surface (document),
+                                     NULL));
+            gp_history_add_item (history,
+                                 gp_select_history_item_create (
+                                     GP_ISELECTION_TOOL (tool),
+                                     gp_document_get_surface (document),
+                                     _get_rectangle_selection_params (selection_tool)));
+        }
+
         GP_SHAPE_TOOL_PRIV (tool)->grabbed = TRUE;
         selection_tool->offset_x = pos.x - GP_SHAPE_TOOL_PRIV (tool)->start_point.x;
         selection_tool->offset_y = pos.y - GP_SHAPE_TOOL_PRIV (tool)->start_point.y;
     }
     else
     {
+        selection_tool->session = FALSE;
         if (selection_tool->is_selected)
         {
             gp_rectangle_selection_tool_apply_motion (selection_tool);
@@ -198,6 +246,7 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
     GPShapeToolPrivate *priv = GP_SHAPE_TOOL_PRIV (tool);
     GPRectangleSelectionTool *selection_tool = GP_RECTANGLE_SELECTION_TOOL (tool);
     GPDocument *document;
+    GPHistory *history;
 
     if (!priv->grabbed)
     {
@@ -205,6 +254,7 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
     }
 
     document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+    history = gp_document_get_history (document);
 
     _gp_shape_tool_draw_shape (GP_SHAPE_TOOL (tool), gp_document_get_tool_surface (document));
 
@@ -213,8 +263,11 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
 
     if (!selection_tool->is_selected)
     {
+        selection_tool->root_point = priv->start_point;
+
         if (priv->width > 0 && priv->height > 0)
         {
+
             GdkPixbuf *selection = gdk_pixbuf_get_from_surface (gp_document_get_surface (document),
                                                                 priv->start_point.x, priv->start_point.y,
                                                                 (gint)priv->width + SELECTION_MARGIN, (gint)priv->height + SELECTION_MARGIN);
@@ -225,8 +278,14 @@ gp_rectangle_selection_tool_button_release (GPTool *tool, GdkEventButton *event,
         {
             gp_rectangle_selection_tool_update_selection (selection_tool, NULL);
         }
-
-        selection_tool->root_point = priv->start_point;
+    }
+    else
+    {
+        gp_history_add_item (history,
+                             gp_select_history_item_create (
+                                 GP_ISELECTION_TOOL (tool),
+                                 gp_document_get_surface (document),
+                                 _get_rectangle_selection_params (selection_tool)));
     }
 
     priv->grabbed = FALSE;
@@ -272,9 +331,50 @@ gp_rectangle_selection_tool_deactivate (GPTool *tool)
 }
 
 static void
+gp_rectangle_selection_tool_init_from_params (
+        GPISelectionTool *selection_tool,
+        gpointer          selection_params)
+{
+    GPRectangleSelectionTool *tool = GP_RECTANGLE_SELECTION_TOOL (selection_tool);
+    GPRectangleSelectionParams *params = (GPRectangleSelectionParams*) selection_params;
+    GPShapeToolPrivate *priv = gp_shape_tool_get_priv (GP_SHAPE_TOOL (tool));
+
+    if (!selection_params)
+    {
+        gp_rectangle_selection_tool_deactivate (GP_TOOL (selection_tool));
+        return;
+    }
+
+    tool->is_selected = TRUE;
+    tool->root_point = params->origin_point;
+    priv->width = params->selection_width;
+    priv->height = params->selection_height;
+    priv->start_point = params->current_point;
+
+    GPDocument *document = gp_document_manager_get_active_document (gp_document_manager_get_default ());
+
+    GdkPixbuf *selection = gdk_pixbuf_get_from_surface (gp_document_get_surface (document),
+                                                        tool->root_point.x, tool->root_point.y,
+                                                        (gint)priv->width + SELECTION_MARGIN, (gint)priv->height + SELECTION_MARGIN);
+    gp_rectangle_selection_tool_update_selection (tool, selection);
+
+    _gp_shape_tool_draw_shape (GP_SHAPE_TOOL (selection_tool), gp_document_get_tool_surface (document));
+    gp_document_request_update_view (document, &priv->prev_bounding_rect);
+}
+
+static void
+gp_rectangle_selection_tool_destroy_params (
+        GPISelectionTool *selection_tool,
+        gpointer          selection_params)
+{
+    g_free (selection_params);
+}
+
+static void
 gp_rectangle_selection_tool_init (GPRectangleSelectionTool *self)
 {
     self->is_selected = FALSE;
+    self->session = FALSE;
     self->selection = NULL;
 }
 
@@ -284,6 +384,13 @@ gp_rectangle_selection_tool_finalize (GObject *self)
     GPRectangleSelectionTool *tool = GP_RECTANGLE_SELECTION_TOOL (self);
 
     g_clear_object (&tool->selection);
+}
+
+static void
+gp_rectangle_selection_tool_iselection_tool_init (GPISelectionToolInterface *iface)
+{
+    iface->init_from_params = gp_rectangle_selection_tool_init_from_params;
+    iface->destroy_params = gp_rectangle_selection_tool_destroy_params;
 }
 
 static void
